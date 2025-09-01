@@ -1,8 +1,394 @@
-{% extends "main/base_layout.html" %}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>PPT翻译 - 翻译管理系统</title>
+    <!-- 基础样式 -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/nav.css">
+    <link rel="stylesheet" href="/static/css/toast.css">
+    <link rel="stylesheet" href="/static/css/user-info.css">
+    <link rel="stylesheet" href="/static/css/brand.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    
+    <!-- 重写侧边栏样式 -->
+    <style>
+        /* 重写侧边栏样式为浅色主题 */
+        /* 全局样式 - 固定比例布局 */
+        * {
+            box-sizing: border-box;
+        }
 
-{% block title %}{% if session.get('language') == 'en' %}PPT Translation{% else %}PPT翻译{% endif %}{% endblock %}
+        html {
+            font-size: 14px; /* 基础字体大小 */
+            overflow-x: hidden;
+        }
 
-{% block styles %}
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-size: 1rem; /* 使用相对单位 */
+        }
+
+        /* 侧边栏样式 - 使用视口单位 */
+        .nav-menu {
+            width: 17vw; /* 使用视口宽度的17% */
+            min-width: 200px; /* 最小宽度保证可读性 */
+            max-width: 280px; /* 最大宽度避免过宽 */
+            background: white;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden; /* 防止内容溢出 */
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            padding: 1vw 1.4vw; /* 减少上下padding */
+            text-decoration: none;
+            color: rgb(0,148,217);
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-bottom: 1px solid #f1f3f4;
+            flex-shrink: 0; /* 防止压缩 */
+        }
+
+        /* Logo图片样式 */
+        .brand-logo {
+            width: calc(100% - 1.6vw); /* 宽度占满容器，减去一点边距 */
+            max-width: calc(280px - 32px); /* 最大宽度对应侧边栏最大宽度减去边距 */
+            height: auto; /* 高度自适应保持比例 */
+            object-fit: contain; /* 保持图片比例，不变形 */
+            margin: 0.2vw 0.8vw; /* 上下和左右边距 */
+        }
+
+        .nav-brand i {
+            margin-right: 0.8vw;
+            font-size: 1.4rem;
+        }
+
+        .nav-brand:hover {
+            color: rgb(0,130,190);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0.7vw 0;
+            overflow-y: auto; /* 当内容过多时显示滚动条 */
+            min-height: 0; /* 允许flex item收缩 */
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.8vw 1.4vw;
+            text-decoration: none;
+            color: rgb(110,111,114);
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link i {
+            margin-right: 0.8vw;
+            font-size: 1.1rem;
+            width: 1.4vw;
+            text-align: center;
+        }
+
+        .nav-link:hover {
+            background: rgba(0,148,217,0.08);
+            color: rgb(0,148,217);
+            text-decoration: none;
+            border-left-color: rgba(0,148,217,0.3);
+        }
+
+        .nav-link.active {
+            background: rgba(0,148,217,0.12);
+            color: rgb(0,148,217);
+            border-left-color: rgb(0,148,217);
+            font-weight: 600;
+        }
+
+        /* 顶部右侧悬浮语言切换按钮样式 */
+        .floating-language-btn {
+            position: fixed;
+            top: 1.0vw;
+            right: 1.0vw;
+            z-index: 1100;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4vw;
+            padding: 0.5vw 0.8vw;
+            background: rgba(0,148,217,0.1);
+            border: 1px solid rgba(0,148,217,0.2);
+            border-radius: 20px;
+            color: rgb(0,148,217);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .floating-language-btn:hover {
+            background: rgba(0,148,217,0.15);
+            border-color: rgba(0,148,217,0.3);
+            color: rgb(0,130,190);
+        }
+
+        .floating-language-btn i {
+            font-size: 1rem;
+        }
+
+        /* 主内容区域 - 自适应侧边栏宽度 */
+        .container {
+            margin-left: 17vw; /* 与侧边栏宽度一致 */
+            width: 83vw; /* 占据剩余的83%视口宽度 */
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 用户信息卡片 - 响应式定位 */
+        .user-info-card {
+            position: fixed;
+            bottom: 1.4vw;
+            right: 1.4vw;
+            background: white;
+            border-radius: 0.8vw;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            width: 18vw;
+            min-width: 250px;
+            max-width: 350px;
+            z-index: 1001;
+            border: 1px solid #e9ecef;
+        }
+
+        .user-info-header {
+            display: flex;
+            align-items: center;
+            padding: 1vw 1.4vw;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .user-avatar i {
+            font-size: 2.2rem;
+            color: rgb(0,148,217);
+            margin-right: 0.8vw;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: rgb(0,148,217);
+            font-size: 1.1rem;
+        }
+
+        .user-role {
+            color: #ffffff;
+            font-size: 0.9rem;
+            margin-top: 0.1vw;
+        }
+
+        .user-info-toggle {
+            background: none;
+            border: none;
+            color: rgb(110,111,114);
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .user-info-toggle:hover {
+            background: rgba(0,148,217,0.1);
+            color: rgb(0,148,217);
+        }
+
+        .user-info-body {
+            padding: 15px 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .user-info-body.expanded {
+            max-height: 250px;
+        }
+
+        .user-info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: rgb(110,111,114);
+        }
+
+        .user-info-item i {
+            margin-right: 10px;
+            width: 16px;
+            color: rgb(0,148,217);
+        }
+
+        .user-info-actions {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f1f3f4;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .user-action-btn {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            text-decoration: none;
+            color: rgb(110,111,114);
+            font-size: 13px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .user-action-btn i {
+            margin-right: 8px;
+        }
+
+        .user-action-btn:hover {
+            background: rgba(0,148,217,0.1);
+            color: rgb(0,148,217);
+            text-decoration: none;
+        }
+
+        .user-action-btn.logout-btn:hover {
+            background: rgba(220,53,69,0.1);
+            color: #dc3545;
+        }
+
+        /* Toast 消息 - 响应式定位 */
+        .toast-container {
+            position: fixed;
+            top: 1.4vw;
+            right: 1.4vw;
+            z-index: 1050;
+        }
+
+        .toast {
+            background: white;
+            border-radius: 0.6vw;
+            padding: 1vw 1.4vw;
+            margin-bottom: 0.7vw;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border-left: 4px solid;
+            display: flex;
+            align-items: center;
+            gap: 0.8vw;
+            animation: slideIn 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .toast.success {
+            border-left-color: #28a745;
+            color: #155724;
+        }
+
+        .toast.error {
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+
+        .toast i {
+            font-size: 18px;
+        }
+
+        .toast.success i {
+            color: #28a745;
+        }
+
+        .toast.error i {
+            color: #dc3545;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* 响应式设计 - 保持比例 */
+        @media (max-width: 1400px) {
+            html {
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            html {
+                font-size: 12px;
+            }
+            
+            .nav-menu {
+                width: 16vw;
+                min-width: 180px;
+            }
+            
+            .container {
+                margin-left: 16vw;
+                width: 84vw;
+            }
+        }
+
+        @media (max-width: 768px) {
+            html {
+                font-size: 11px;
+            }
+            
+            .nav-menu {
+                width: 15vw;
+                min-width: 160px;
+            }
+            
+            .container {
+                margin-left: 15vw;
+                width: 85vw;
+            }
+            
+            .user-info-card {
+                width: 25vw;
+                min-width: 200px;
+            }
+        }
+    </style>
+    
+    
 <style>
     /* 重写容器样式 - 固定比例布局 */
     .container {
@@ -755,20 +1141,88 @@
         }
     }
 </style>
-{% endblock %}
 
-{% block content %}
+</head>
+<body>
+    <nav class="nav-menu">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <img src="/static/images/logo.svg" alt="Logo" class="brand-logo">
+                <span style="display: none;">翻译管理系统</span>
+            </a>
+            <div class="nav-links">
+                <a href="/" class="nav-link active">
+                    <i class="bi bi-translate"></i>
+                    PPT翻译
+                </a>
+                <a href="/dictionary" class="nav-link ">
+                    <i class="bi bi-book"></i>
+                    词库管理
+                </a>
+                
+                <a href="/ingredient" class="nav-link ">
+                    <i class="bi bi-search"></i>
+                    成分搜索
+                </a>
+                
+                    
+                        <a href="/registration_approval" class="nav-link">
+                            <i class="bi bi-person-check"></i> 
+                            注册审批
+                        </a>
+                        <a href="/user_management" class="nav-link">
+                            <i class="bi bi-people"></i> 
+                            用户管理
+                        </a>
+
+                        <!-- 文件管理页面 -->
+                        <a href="/file_management" class="nav-link ">
+                            <i class="bi bi-file-earmark-ppt"></i>
+                            文件管理
+                        </a>
+
+                        <!-- 系统监控页面 -->
+
+
+
+
+
+
+
+
+                        <a href="/logs" class="nav-link ">
+                            <i class="bi bi-journal-text"></i>
+                            日志管理
+                        </a>
+                        <a href="/pdf_translate" class="nav-link ">
+                            <i class="bi bi-file-pdf"></i>
+                            PDF翻译
+                        </a>
+                    
+                    <a href="/auth/logout" class="nav-link">
+                        <i class="bi bi-box-arrow-right"></i>
+                        退出
+                    </a>
+                
+            </div>
+            
+            <!-- 移除侧边栏语言切换按钮（改为右上角悬浮按钮） -->
+        </div>
+    </nav>
+
+    <div class="container">
+        
 <!-- 页面头部 -->
 <div class="page-header">
     <div class="header-icon">
         <i class="bi bi-translate"></i>
     </div>
-    <h1 class="header-title">{% if session.get('language') == 'en' %}PPT File Translation Tool{% else %}PPT文件翻译工具{% endif %}</h1>
-{#    <div class="header-actions">#}
-{#        <a href="#" class="btn btn-secondary">#}
-{#            <i class="bi bi-file-pdf"></i> {% if session.get('language') == 'en' %}PDF Annotation Tool{% else %}PDF注释工具{% endif %}#}
-{#        </a>#}
-{#    </div>#}
+    <h1 class="header-title">PPT文件翻译工具</h1>
+
+
+
+
+
 </div>
 
 <!-- 队列状态提示 -->
@@ -783,54 +1237,39 @@
     <div class="config-panel">
         <h3>
             <i class="bi bi-gear"></i>
-            {% if session.get('language') == 'en' %}Translation Settings{% else %}翻译设置{% endif %}
+            翻译设置
         </h3>
 
-{#        <!-- 管理员工具 -->#}
-{#        {% if current_user.is_authenticated and current_user.is_administrator() %}#}
-{#        <div class="admin-tools" id="adminTools">#}
-{#            <h3>{% if session.get('language') == 'en' %}Admin Tools{% else %}管理员工具{% endif %}</h3>#}
-{#            <div class="admin-tools-list">#}
-{#                <a href="{{ url_for('main.file_management') }}" class="admin-tool-btn">#}
-{#                    <i class="bi bi-file-earmark-ppt"></i> {% if session.get('language') == 'en' %}File Management{% else %}文件管理{% endif %}#}
-{#                </a>#}
-{#                <a href="{{ url_for('main.logs') }}" class="admin-tool-btn">#}
-{#                    <i class="bi bi-journal-text"></i> {% if session.get('language') == 'en' %}System Logs{% else %}系统日志{% endif %}#}
-{#                </a>#}
-{#            </div>#}
-{#        </div>#}
-{#        {% endif %}#}
-
         <div class="form-group">
-            <label for="source-language">{% if session.get('language') == 'en' %}Source Language{% else %}源语言{% endif %}</label>
+            <label for="source-language">源语言</label>
             <select id="source-language" class="form-control">
-                <option value="English">{% if session.get('language') == 'en' %}English{% else %}英语{% endif %}</option>
-                <option value="Chinese">{% if session.get('language') == 'en' %}Chinese{% else %}中文{% endif %}</option>
-                <option value="Dutch">{% if session.get('language') == 'en' %}Dutch{% else %}荷兰语{% endif %}</option>
+                <option value="English">英语</option>
+                <option value="Chinese">中文</option>
+                <option value="Dutch">荷兰语</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label for="target-language">{% if session.get('language') == 'en' %}Target Language{% else %}目标语言{% endif %}</label>
+            <label for="target-language">目标语言</label>
             <select id="target-language" class="form-control">
-                <option value="Chinese">{% if session.get('language') == 'en' %}Chinese{% else %}中文{% endif %}</option>
-                <option value="English">{% if session.get('language') == 'en' %}English{% else %}英语{% endif %}</option>
-                <option value="Dutch">{% if session.get('language') == 'en' %}Dutch{% else %}荷兰语{% endif %}</option>
+                <option value="Chinese">中文</option>
+                <option value="English">英语</option>
+                <option value="Dutch">荷兰语</option>
             </select>
         </div>
 
 
         <div class="form-group">
-            <label for="bilingual_translation">{% if session.get('language') == 'en' %}Language display{% else %}语言展示方式{% endif %}</label>
+            <label for="bilingual_translation">是否保留源语言</label>
             <select id="bilingual_translation" class="form-control">
-                <option value="translation_only">{% if session.get('language') == 'en' %}Keep translated content only{% else %}只保留翻译内容{% endif %}</option>
-                <option value="paragraph_up">{% if session.get('language') == 'en' %}Keep both source and translated content(source on top){% else %}保留源语言和翻译内容（源语言在上）{% endif %}</option>
-                <option value="paragraph_down">{% if session.get('language') == 'en' %}Keep both source and translated content(translation on top){% else %}保留源语言和翻译内容（译文在上）{% endif %}</option>
+                <option value="translation_only">只保留翻译文本</option>
+                <option value="paragraph_up">保留源语言在译文上方</option>
+                <option value="paragraph_down">保留源语言在译文下方</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label for="model">{% if session.get('language') == 'en' %}Translation Model{% else %}翻译模型{% endif %}</label>
+            <label for="model">翻译模型</label>
             <select id="model" class="form-control">
                 <option value="qwen">Qwen2.5</option>
                 <option value="deepseek">DeepSeek-Chat</option>
@@ -839,34 +1278,41 @@
         </div>
 
         <div class="form-group">
-            <label for="enable_text_splitting">{% if session.get('language') == 'en' %}OCR Text Configuration{% else %}图片识别配置{% endif %}</label>
+            <label for="enable_text_splitting">图片识别配置</label>
             <select id="enable_text_splitting" class="form-control">
-                <option value="False">{% if session.get('language') == 'en' %}Disable OCR{% else %}不启用ocr识别{% endif %}</option>
-                <option value="True_spliting">{% if session.get('language') == 'en' %}Enable text line splitting (Recommended){% else %}启用文本行分割（推荐）{% endif %}</option>
-                <option value="True_no_spliting">{% if session.get('language') == 'en' %}Enable OCR without text line splitting{% else %}启用ocr识别，不进行文本行分割{% endif %}</option>
+                <option value="False">不启用ocr识别</option>
+                <option value="True_spliting">启用文本行分割（推荐）</option>
+                <option value="True_no_spliting">启用ocr识别，不进行文本行分割</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label for="enable_uno_conversion">{% if session.get('language') == 'en' %}Enable PPTX Font Size Auto-adjustment{% else %}激活pptx的字体大小自适应{% endif %}</label>
+            <label for="enable_uno_conversion">激活pptx的字体大小自适应</label>
             <select id="enable_uno_conversion" class="form-control">
-                <option value="True">{% if session.get('language') == 'en' %}Enable (Recommended){% else %}启用（推荐）{% endif %}</option>
-                <option value="False">{% if session.get('language') == 'en' %}Disable{% else %}关闭{% endif %}</option>
+                <option value="True">启用（推荐）</option>
+                <option value="False">关闭</option>
             </select>
             <small class="form-text text-muted" style="font-size: 0.8rem; color: #6c757d; margin-top: 0.25rem;">
-                {% if session.get('language') == 'en' %}
-                When enabled, LibreOffice will be used for PPTX→ODP→PPTX conversion. This may cause format changes in the PPT. If excessive format changes occur, please disable this option.
-                {% else %}
+                
                 启用后将使用LibreOffice进行PPTX→ODP→PPTX转换，这一行为可能会导致ppt的版式出现变化，若出现版式变化过大，请关闭此选项。
-                {% endif %}
+                
             </small>
         </div>
         <!-- 新增的词汇表部分 -->
         <div class="form-group">
-            <label>{% if session.get('language') == 'en' %}Vocabulary{% else %}词汇表{% endif %}</label>
+            <label>词汇表</label>
             <button type="button" class="btn btn-secondary" id="vocabularyConfigBtn" onclick="openVocabularyConfig()">
-                {% if session.get('language') == 'en' %}Not Configured{% else %}未配置{% endif %}
+                未配置
             </button>
+        </div>
+        
+        <!-- PDF翻译功能 -->
+        <div class="form-group">
+            <label>PDF翻译</label>
+            <button type="button" class="btn btn-secondary" id="pdfTranslateBtn" onclick="openPdfTranslate()">
+                上传PDF文件
+            </button>
+            <input type="file" id="pdfFileInput" accept=".pdf" style="display: none;" onchange="handlePdfUpload(event)">
         </div>
     </div>
 
@@ -874,14 +1320,14 @@
     <div class="translation-area">
         <!-- PPT翻译卡片 -->
         <div class="upload-card">
-            <h2>{% if session.get('language') == 'en' %}PPT Translation{% else %}PPT翻译{% endif %}</h2>
+            <h2>PPT翻译</h2>
             
             <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
                 <div class="upload-zone-content">
-                    <div class="upload-text">{% if session.get('language') == 'en' %}Drag PPT file here or click to upload{% else %}拖拽PPT文件到这里或点击上传{% endif %}</div>
+                    <div class="upload-text">拖拽PPT文件到这里或点击上传</div>
                     <button class="upload-btn">
                         <i class="bi bi-upload"></i>
-                        {% if session.get('language') == 'en' %}Upload PPT File{% else %}上传 PPT文件{% endif %}
+                        上传 PPT文件
                     </button>
                 </div>
                 <input type="file" id="fileInput" accept=".ppt,.pptx" style="display: none;">
@@ -891,11 +1337,9 @@
             <div id="progressContainer" class="progress-container">
                 <div class="progress-info">
                     <div class="slide-info">
-                        {% if session.get('language') == 'en' %}
-                        Translating page <span id="currentSlide">0</span> of <span id="totalSlides">0</span>
-                        {% else %}
+                        
                         正在翻译第 <span id="currentSlide">0</span> 页，共 <span id="totalSlides">0</span> 页
-                        {% endif %}
+                        
                     </div>
                     <div class="progress-percentage">
                         <span id="progressText">0%</span>
@@ -908,20 +1352,20 @@
                 
                 <div id="detailedStatus" class="detailed-status">
                     <div class="status-header">
-                        <h4>{% if session.get('language') == 'en' %}Translation Details{% else %}翻译详情{% endif %}</h4>
+                        <h4>翻译详情</h4>
                         <button id="toggleDetailBtn" class="toggle-detail-btn" onclick="toggleDetailView()">
                             <i class="bi bi-chevron-down"></i>
                         </button>
                     </div>
                     <div id="detailContent" class="detail-content">
                         <div style="margin-bottom: 15px;">
-                            <strong>{% if session.get('language') == 'en' %}Current Stage:{% else %}当前阶段:{% endif %}</strong> <span id="currentStage">{% if session.get('language') == 'en' %}Waiting to start{% else %}等待开始{% endif %}</span>
+                            <strong>当前阶段:</strong> <span id="currentStage">等待开始</span>
                         </div>
                         <div style="margin-bottom: 15px;">
-                            <strong>{% if session.get('language') == 'en' %}Current Operation:{% else %}当前操作:{% endif %}</strong> <span id="currentOperation">-</span>
+                            <strong>当前操作:</strong> <span id="currentOperation">-</span>
                         </div>
                         <div>
-                            <strong>{% if session.get('language') == 'en' %}Processing Log:{% else %}处理日志:{% endif %}</strong>
+                            <strong>处理日志:</strong>
                             <div id="translationLog" class="translation-log"></div>
                         </div>
                     </div>
@@ -933,17 +1377,17 @@
         <div class="history-card">
             <h3>
                 <i class="bi bi-clock-history"></i>
-                {% if session.get('language') == 'en' %}History{% else %}历史记录{% endif %}
+                历史记录
             </h3>
             
             <table class="history-table">
                 <thead>
                     <tr>
-                        <th>{% if session.get('language') == 'en' %}File Name{% else %}文件名{% endif %}</th>
-                        <th>{% if session.get('language') == 'en' %}Upload Time{% else %}上传时间{% endif %}</th>
-                        <th>{% if session.get('language') == 'en' %}File Size{% else %}文件大小{% endif %}</th>
-                        <th>{% if session.get('language') == 'en' %}Translation Status{% else %}翻译状态{% endif %}</th>
-                        <th>{% if session.get('language') == 'en' %}Actions{% else %}操作{% endif %}</th>
+                        <th>文件名</th>
+                        <th>上传时间</th>
+                        <th>文件大小</th>
+                        <th>翻译状态</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody id="historyTableBody">
@@ -957,13 +1401,13 @@
 <!-- 页面选择悬浮窗 -->
 <div id="pageSelector" class="page-selector">
     <div class="page-selector-header">
-        <div class="page-selector-title">{% if session.get('language') == 'en' %}Select pages to translate{% else %}选择要翻译的页面{% endif %}</div>
+        <div class="page-selector-title">选择要翻译的页面</div>
         <div style="display: flex; gap: 8px;">
             <button class="btn" style="padding: 4px 8px; font-size: 12px; background: rgb(0,148,217); color: white;" onclick="selectAllPages()">
-                {% if session.get('language') == 'en' %}Select All{% else %}全选{% endif %}
+                全选
             </button>
             <button class="btn" style="padding: 4px 8px; font-size: 12px; background: #f8f9fa; color: rgb(110,111,114);" onclick="deselectAllPages()">
-                {% if session.get('language') == 'en' %}Cancel{% else %}取消{% endif %}
+                取消
             </button>
         </div>
     </div>
@@ -972,12 +1416,161 @@
     </div>
     <button id="startTranslateBtn" class="start-translate-btn" onclick="startTranslation()" disabled>
         <i class="bi bi-translate"></i>
-        {% if session.get('language') == 'en' %}Start Translation{% else %}开始翻译{% endif %}
+        开始翻译
     </button>
 </div>
-{% endblock %}
 
-{% block scripts %}
+<!-- PDF翻译模态框 -->
+<div id="pdfTranslateModal" class="page-selector" style="display: none;">
+    <div class="page-selector-header">
+        <div class="page-selector-title">PDF翻译</div>
+        <button class="btn" style="padding: 4px 8px; background: #f8f9fa; color: rgb(110,111,114);" onclick="closePdfTranslate()">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div style="margin: 20px 0;">
+        <div class="upload-zone" id="pdfDropZone" onclick="document.getElementById('pdfFileInput').click()">
+            <div class="upload-zone-content">
+                <div class="upload-text">拖拽PDF文件到这里或点击上传</div>
+                <button class="upload-btn">
+                    <i class="bi bi-upload"></i>
+                    上传PDF文件
+                </button>
+            </div>
+            <input type="file" id="pdfFileInput" accept=".pdf" style="display: none;" onchange="handlePdfUpload(event)">
+        </div>
+        
+        <div id="pdfProgressContainer" class="progress-container" style="display: none; margin-top: 20px;">
+            <div class="progress-info">
+                <div class="slide-info">
+                    <span id="pdfProgressText">处理中...</span>
+                </div>
+                <div class="progress-percentage">
+                    <span id="pdfProgressPercent">0%</span>
+                </div>
+            </div>
+            <div class="progress-bar-container">
+                <div id="pdfProgressBarFill" class="progress-bar-fill"></div>
+            </div>
+        </div>
+        
+        <div id="pdfResultContainer" style="display: none; margin-top: 20px; text-align: center;">
+            <div style="color: #28a745; margin-bottom: 15px;">
+                <i class="bi bi-check-circle-fill" style="font-size: 48px;"></i>
+                <h3>翻译完成！</h3>
+            </div>
+            <a id="pdfDownloadLink" class="btn btn-secondary" style="background: rgb(0,148,217); color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px;">
+                <i class="bi bi-download"></i>
+                下载Word文档
+            </a>
+        </div>
+    </div>
+</div>
+
+    </div>
+
+    <!-- 右上角悬浮语言切换按钮 -->
+    <button class="floating-language-btn" onclick="switchLanguage()" title="切换为英文">
+        <i class="bi bi-translate"></i>
+        English
+    </button>
+
+    <!-- 用户信息卡片 -->
+    
+    <div id="user-info-card" class="user-info-card">
+        <div class="user-info-header">
+            <div class="user-avatar">
+                <i class="bi bi-person-circle"></i>
+            </div>
+            <div class="user-details">
+                <div class="user-name">admin</div>
+                <div class="user-role">admin</div>
+            </div>
+            <button class="user-info-toggle" onclick="toggleUserInfo()">
+                <i class="bi bi-chevron-up"></i>
+            </button>
+        </div>
+        <div class="user-info-body">
+            <div class="user-info-item">
+                <i class="bi bi-person"></i>
+                <span>用户名: admin</span>
+            </div>
+            
+            
+            
+            <div class="user-info-item">
+                <i class="bi bi-clock"></i>
+                <span>上次登录: 2025-08-16 15:13</span>
+            </div>
+            
+            <div class="user-info-actions">
+                
+                <a href="#" class="user-action-btn" onclick="changePassword()">
+                    <i class="bi bi-key"></i> 修改密码
+                </a>
+                
+                <a href="/auth/logout" class="user-action-btn logout-btn">
+                    <i class="bi bi-box-arrow-right"></i> 退出登录
+                </a>
+            </div>
+        </div>
+    </div>
+    
+
+    <!-- 提示消息容器 -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- 基础脚本 -->
+    <script src="/static/js/main.js"></script>
+    <script>
+    // 处理Flash消息
+    
+        
+            
+                showToast('下载文件时出错', 'error');
+            
+        
+    
+
+    // 语言切换功能
+    function switchLanguage() {
+        const currentLang = 'zh';
+        const newLang = currentLang === 'en' ? 'zh' : 'en';
+        
+        // 发送请求到后端切换语言
+        fetch('/switch_language', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': ''
+            },
+            body: JSON.stringify({
+                language: newLang
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 重新加载页面以应用新语言
+                window.location.reload();
+            } else {
+                showToast(data.message || '语言切换失败', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Language switch error:', error);
+            showToast('语言切换失败', 'error');
+        });
+    }
+    </script>
+
+    <!-- 防抖动工具函数 -->
+    <script src="/static/js/debounce.js"></script>
+    
+    <!-- 用户信息卡片脚本 -->
+    <script src="/static/js/user-info.js"></script>
+
+    
 <!-- JSZip库用于处理PPT文件 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
 <script>
@@ -993,7 +1586,7 @@
     let enable_uno_conversion = true;
 
     // 获取当前语言设置
-    const currentLanguage = '{{ session.get("language", "zh") }}';
+    const currentLanguage = 'zh';
 
     // 多语言文本
     const translations = {
@@ -1021,7 +1614,7 @@
             configured: '已配置'
         },
         en: {
-            fileProcessedTitle: 'File is ready, please select pages to translate',
+            fileProcessedTitle: 'File ready, please select pages to translate',
             fileProcessError: 'File processing failed',
             selectPagesError: 'Please select pages to translate',
             translationStarted: 'Translation task started, processing...',
@@ -1271,6 +1864,121 @@
         } catch (error) {
             showToast(getText('translationLaunchFailed') + error.message, 'error');
         }
+    }
+
+    // 获取翻译文本的辅助函数
+    function getText(key) {
+        return translations[currentLanguage] && translations[currentLanguage][key] 
+            ? translations[currentLanguage][key] 
+            : translations.zh[key];
+    }
+
+    // 打开PDF翻译模态框
+    function openPdfTranslate() {
+        document.getElementById('pdfTranslateModal').style.display = 'block';
+        document.getElementById('pdfFileInput').value = '';
+        document.getElementById('pdfProgressContainer').style.display = 'none';
+        document.getElementById('pdfResultContainer').style.display = 'none';
+    }
+    
+    // 关闭PDF翻译模态框
+    function closePdfTranslate() {
+        document.getElementById('pdfTranslateModal').style.display = 'none';
+    }
+    
+    // 处理PDF文件上传
+    function handlePdfUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        if (!file.name.toLowerCase().endsWith('.pdf')) {
+            alert(currentLanguage === 'en' ? 'Please select a PDF file' : '请选择PDF文件');
+            return;
+        }
+        
+        translatePdfFile(file);
+    }
+    
+    // 翻译PDF文件
+    function translatePdfFile(file) {
+        // 显示进度条
+        document.getElementById('pdfProgressContainer').style.display = 'block';
+        document.getElementById('pdfResultContainer').style.display = 'none';
+        updatePdfProgress(0, currentLanguage === 'en' ? 'Starting translation...' : '开始翻译...");
+        
+        // 创建FormData对象
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // 发送请求到后端
+        fetch('/translate_pdf', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 处理成功
+                document.getElementById('pdfProgressContainer').style.display = 'none';
+                document.getElementById('pdfResultContainer').style.display = 'block';
+                document.getElementById('pdfDownloadLink').href = data.download_url;
+                document.getElementById('pdfDownloadLink').setAttribute('download', data.filename);
+            } else {
+                // 处理失败
+                updatePdfProgress(0, currentLanguage === 'en' ? 'Processing failed: ' + data.error : '处理失败: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            updatePdfProgress(0, currentLanguage === 'en' ? 'Processing failed' : '处理失败');
+        });
+    }
+    
+    // 更新PDF进度条
+    function updatePdfProgress(percent, text) {
+        document.getElementById('pdfProgressBarFill').style.width = percent + '%';
+        document.getElementById('pdfProgressPercent').textContent = percent + '%';
+        document.getElementById('pdfProgressText').textContent = text || percent + '%';
+    }
+
+    // 事件监听器设置函数
+    function setupEventListeners() {
+        // 监听语言选择变化
+        document.getElementById('source-language').addEventListener('change', function(e) {
+            sourceLanguage = e.target.value;
+            console.log('源语言已更改为:', sourceLanguage);
+        });
+    }
+
+    // 发送请求到后端
+    function translatePDF() {
+        const formData = new FormData();
+        formData.append('file', document.getElementById('pdfFileInput').files[0]);
+
+        // 发送请求到后端
+        fetch('/translate_pdf', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // 处理成功
+                document.getElementById('pdfProgressContainer').style.display = 'none';
+                document.getElementById('pdfResultContainer').style.display = 'block';
+                document.getElementById('pdfDownloadLink').href = data.download_url;
+                document.getElementById('pdfDownloadLink').setAttribute('download', data.filename);
+            } else {
+                // 处理失败
+                document.getElementById('pdfProgressText').textContent = 
+                    currentLanguage === 'en' ? 'Processing failed: ' + data.error : '处理失败: ' + data.error;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('pdfProgressText').textContent = 
+                currentLanguage === 'en' ? 'Processing failed' : '处理失败';
+        });
     }
 
     // 检查任务状态
@@ -1574,15 +2282,12 @@
                     <input type="text" id="vocabularySearch" placeholder="${currentLanguage === 'en' ? 'Search vocabulary...' : '搜索词汇...'}" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
                     <button id="searchBtn" style="padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">${currentLanguage === 'en' ? 'Search' : '搜索'}</button>
                 </div>
-                <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
-                    <input type="text" id="vocabularySearch" placeholder="${currentLanguage === 'en' ? 'Search vocabulary...' : '搜索词汇...'}" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                    <select id="categoryFilter" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                        <option value="">${currentLanguage === 'en' ? 'Select Category' : '选择分类'}</option>
+                <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <select id="categoryFilter" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; flex: 1; min-width: 200px;">
+                        <option value="">${currentLanguage === 'en' ? 'All Categories' : '所有分类'}</option>
                     </select>
-                    <button id="addCategoryBtn" style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">${currentLanguage === 'en' ? 'Add' : '添加'}</button>
-                </div>
-                <div id="selectedCategoryTags" style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 5px;">
-                    <!-- 分类标签将在这里动态显示 -->
+                    <div id="selectedCategories" style="display: flex; gap: 5px; flex-wrap: wrap; flex: 1; min-width: 200px;"></div>
+                    <button id="clearFilterBtn" style="padding: 8px 15px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">${currentLanguage === 'en' ? 'Clear Filter' : '清除筛选'}</button>
                 </div>
                 <div style="margin-bottom: 15px; display: flex; align-items: center;">
                     <input type="checkbox" id="selectAllCheckbox" style="margin-right: 10px;">
@@ -1632,19 +2337,11 @@
         });
         
         // 分类筛选事件
-        document.getElementById('addCategoryBtn').addEventListener('click', addCategoryFilter);
+        document.getElementById('categoryFilter').addEventListener('change', applyFilters);
         
-        document.getElementById('categoryFilter').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                addCategoryFilter();
-            }
-        });
-        
-        // 清除筛选
         document.getElementById('clearFilterBtn').addEventListener('click', () => {
-            document.getElementById('class1Filter').value = '';
-            document.getElementById('class2Filter').value = '';
-            filterVocabularyData();
+            document.getElementById('categoryFilter').selectedIndex = 0;
+            clearCategoryFilters();
         });
         
         // 全选/取消全选功能
@@ -1673,18 +2370,6 @@
         });
         
         observer.observe(vocabularyList, { childList: true, subtree: true });
-    }
-    
-    function updateSelectAllCheckbox() {
-        const allCheckboxes = document.querySelectorAll('#vocabularyList input[type="checkbox"]');
-        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-        const allChecked = allCheckboxes.length > 0 && Array.from(allCheckboxes).every(cb => cb.checked);
-        selectAllCheckbox.checked = allChecked;
-        
-        // 如果没有复选框，确保全选框未选中
-        if (allCheckboxes.length === 0) {
-            selectAllCheckbox.checked = false;
-        }
     }
     
     // 全局存储所有词汇数据
@@ -1730,7 +2415,7 @@
         const categoryFilter = document.getElementById('categoryFilter');
         if (categoryFilter) {
             // 清空选项
-            categoryFilter.innerHTML = `<option value="">${currentLanguage === 'en' ? 'Select Category' : '选择分类'}</option>`;
+            categoryFilter.innerHTML = `<option value="">${currentLanguage === 'en' ? 'All Categories' : '所有分类'}</option>`;
             
             // 添加分类选项
             Array.from(categorySet).sort().forEach(category => {
@@ -1740,61 +2425,6 @@
                 categoryFilter.appendChild(option);
             });
         }
-    }
-    
-    // 添加分类到筛选条件
-    function addCategoryFilter() {
-        const categoryFilter = document.getElementById('categoryFilter');
-        const selectedCategory = categoryFilter.value;
-        
-        if (selectedCategory && !selectedCategories.includes(selectedCategory)) {
-            selectedCategories.push(selectedCategory);
-            updateCategoryTags();
-            applyFilters();
-        }
-        
-        // 重置选择框
-        categoryFilter.selectedIndex = 0;
-    }
-    
-    // 移除分类筛选条件
-    function removeCategoryFilter(category) {
-        selectedCategories = selectedCategories.filter(cat => cat !== category);
-        updateCategoryTags();
-        applyFilters();
-    }
-    
-    // 清除所有分类筛选条件
-    function clearCategoryFilters() {
-        selectedCategories = [];
-        updateCategoryTags();
-        applyFilters();
-    }
-    
-    // 更新分类标签显示
-    function updateCategoryTags() {
-        const tagsContainer = document.getElementById('selectedCategoryTags');
-        if (!tagsContainer) return;
-        
-        if (selectedCategories.length === 0) {
-            tagsContainer.innerHTML = '';
-            return;
-        }
-        
-        let html = '';
-        selectedCategories.forEach(category => {
-            html += `
-                <span style="display: inline-flex; align-items: center; background: #007bff; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
-                    ${category}
-                    <button type="button" onclick="removeCategoryFilter('${category}')" style="margin-left: 5px; background: none; border: none; color: white; cursor: pointer; font-weight: bold;">×</button>
-                </span>
-            `;
-        });
-        
-        // 添加清除按钮
-        html += `<button type="button" onclick="clearCategoryFilters()" style="background: #6c757d; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">${currentLanguage === 'en' ? 'Clear Filters' : '清除筛选'}</button>`;
-        
-        tagsContainer.innerHTML = html;
     }
     
     // 应用所有筛选条件
@@ -1842,7 +2472,6 @@
         let html = `
             <div style="display: flex; align-items: center; padding: 8px 0; border-bottom: 2px solid #333; font-weight: bold; background-color: #f8f9fa;">
                 <div style="width: 30px; padding-left: 10px;">
-                    <!-- 移除了表头的全选复选框 -->
                 </div>
                 <div style="flex: 1; display: flex;">
                     <div style="flex: 1; padding: 0 5px; color: #333;">${currentLanguage === 'en' ? 'English' : '英文'}</div>
@@ -1872,16 +2501,6 @@
         
         vocabularyList.innerHTML = html;
         
-        // 全选/取消全选功能
-        document.getElementById('selectAllCheckbox').addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('#vocabularyList input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
-            });
-            // 更新全选框状态
-            updateSelectAllCheckbox();
-        });
-        
         // 为每个复选框添加事件监听器
         const checkboxes = document.querySelectorAll('#vocabularyList input[type="checkbox"]');
         checkboxes.forEach(checkbox => {
@@ -1890,6 +2509,18 @@
         
         // 更新主界面的全选框状态
         updateSelectAllCheckbox();
+    }
+    
+    function updateSelectAllCheckbox() {
+        const allCheckboxes = document.querySelectorAll('#vocabularyList input[type="checkbox"]');
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const allChecked = allCheckboxes.length > 0 && Array.from(allCheckboxes).every(cb => cb.checked);
+        selectAllCheckbox.checked = allChecked;
+        
+        // 如果没有复选框，确保全选框未选中
+        if (allCheckboxes.length === 0) {
+            selectAllCheckbox.checked = false;
+        }
     }
     
     function closeVocabularyConfig() {
@@ -1901,8 +2532,8 @@
     
     // 更新词汇表配置按钮显示
     function saveVocabularyConfig() {
-        // 获取选中的词汇（移除了对表头全选复选框的排除）
-        const selectedCheckboxes = document.querySelectorAll('#vocabularyList input[type="checkbox"]:checked');
+        // 获取选中的词汇（排除表头的全选复选框）
+        const selectedCheckboxes = document.querySelectorAll('#vocabularyList input[type="checkbox"]:checked:not(#selectAllCheckboxHeader)');
         const selectedVocabIds = Array.from(selectedCheckboxes).map(cb => cb.value);
         
         // 更新按钮文本和样式
@@ -1926,4 +2557,6 @@
         closeVocabularyConfig();
     }
 </script>
-{% endblock %}
+
+</body>
+</html>
