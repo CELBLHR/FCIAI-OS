@@ -39,13 +39,13 @@ from app.utils.timezone_helper import format_datetime, datetime_to_isoformat
 # sys.stdout.reconfigure(encoding='utf-8')
 main = Blueprint('main', __name__)
 
-# 配置日志记录器
+# 配置日志记录�?
 logger = logging.getLogger(__name__)
 
 # 使用增强的任务队列替换旧队列
 # translation_queue = TranslationQueue()
 
-# 简单任务状态存储（用于公开API）
+# 简单任务状态存储（用于公开API�?
 simple_task_status = {}
 simple_task_files = {}
 
@@ -80,7 +80,7 @@ def page2():
     return render_template('main/page2.html', user=current_user)
 
 
-# 允许的文件扩展名和大小限制
+# 允许的文件扩展名和大小限�?
 ALLOWED_EXTENSIONS = {'ppt', 'pptx'}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
@@ -95,7 +95,7 @@ def get_unique_filename(filename):
     return f"{uuid.uuid4().hex}.{ext}"
 
 def custom_filename(name):
-    # 移除危险的路径字符，仅保留基本合法字符 + 中文
+    # 移除危险的路径字符，仅保留基本合法字�?+ 中文
     name = re.sub(r'[\\/:"*?<>|]+', '_', name)  # 替换非法字符
     return name
 @main.route('/upload', methods=['POST'])
@@ -104,7 +104,7 @@ def upload_file():
     try:
         # 验证用户是否登录
         if not current_user.is_authenticated:
-            return jsonify({'code': 403, 'msg': '用户未登录'}), 403
+            return jsonify({'code': 403, 'msg': '用户未登�?}), 403
 
         # 获取表单数据
         user_language = request.form.get('source_language', 'English')
@@ -112,7 +112,7 @@ def upload_file():
         bilingual_translation = request.form.get('bilingual_translation', 'paragraph_up')
         select_page = request.form.getlist('select_page')
         model = request.form.get('model', 'qwen')
-        enable_text_splitting = request.form.get('enable_text_splitting', 'False')  # 字符串: "False" 或 "True_spliting"
+        enable_text_splitting = request.form.get('enable_text_splitting', 'False')  # 字符�? "False" �?"True_spliting"
         enable_uno_conversion = request.form.get('enable_uno_conversion', 'True').lower() == 'true'
         
         # 获取选中的词汇表ID
@@ -135,21 +135,21 @@ def upload_file():
         logger.info(f"  - 文本分割: {enable_text_splitting}")
         logger.info(f"  - UNO转换: {enable_uno_conversion}")
         logger.info(f"  - 选择页面: {select_page}")
-        logger.info(f"  - 词汇表数量: {len(vocabulary_ids)}")
+        logger.info(f"  - 词汇表数�? {len(vocabulary_ids)}")
 
-        # 转换select_page为整数列表
+        # 转换select_page为整数列�?
         if select_page and select_page[0]:
             try:
                 select_page = [int(x) for x in select_page[0].split(',')]
-                logger.info(f"  用户选择的页面: {select_page}")
+                logger.info(f"  用户选择的页�? {select_page}")
             except Exception as e:
                 logger.error(f"  页面选择参数解析失败: {select_page}, 错误: {str(e)}")
                 select_page = []
         else:
-            logger.info(f"  没有选择页面，将翻译所有页面")
+            logger.info(f"  没有选择页面，将翻译所有页�?)
             select_page = []
 
-        # 构建自定义翻译词典
+        # 构建自定义翻译词�?
         custom_translations = {}
         if vocabulary_ids:
             try:
@@ -162,7 +162,7 @@ def upload_file():
                     )
                 ).all()
                 
-                logger.info(f"从数据库查询到 {len(translations)} 个词汇条目")
+                logger.info(f"从数据库查询�?{len(translations)} 个词汇条�?)
                 
                 # 根据翻译方向构建词典
                 for trans in translations:
@@ -197,7 +197,7 @@ def upload_file():
                 logger.info(f"词典示例: {dict(list(custom_translations.items())[:3])}..." if custom_translations else "词典为空")
                 
             except Exception as e:
-                logger.error(f"构建自定义词典失败: {str(e)}")
+                logger.error(f"构建自定义词典失�? {str(e)}")
                 custom_translations = {}
 
         # 其他参数处理
@@ -205,7 +205,7 @@ def upload_file():
         stop_words = [word.strip() for word in stop_words_input.split('\n') if word.strip()]
 
         custom_translations_input = request.form.get('custom_translations', '')
-        # 合并用户输入的翻译和词汇表翻译
+        # 合并用户输入的翻译和词汇表翻�?
         for line in custom_translations_input.split('\n'):
             line = line.strip()
             if not line:
@@ -215,19 +215,19 @@ def upload_file():
                 eng, chi = parts[0].strip(), parts[1].strip()
                 custom_translations[eng] = chi
 
-        # 获取上传的文件
+        # 获取上传的文�?
         file = request.files.get('file')
 
 
         if not file:
             return jsonify({'code': 400, 'msg': '请选择文件上传'}), 400
 
-        # 检查文件名和类型
+        # 检查文件名和类�?
         if not file.filename or not allowed_file(file.filename):
             return jsonify({'code': 400, 'msg': '不支持的文件类型'}), 400
 
-        # 检查文件大小
-        file.seek(0, 2)  # 移动到文件末尾
+        # 检查文件大�?
+        file.seek(0, 2)  # 移动到文件末�?
         file_size = file.tell()  # 获取文件大小
         file.seek(0)  # 重置文件指针
 
@@ -242,14 +242,14 @@ def upload_file():
         # 生成安全的文件名
         original_filename = custom_filename(file.filename)
         
-        # 创建语言名称到语言代码的映射
+        # 创建语言名称到语言代码的映�?
         language_map = {
             'English': 'en',
             'Chinese': 'zh',
             'Dutch': 'nl'
         }
         
-        # 获取源语言和目标语言的代码
+        # 获取源语言和目标语言的代�?
         source_lang_code = language_map.get(user_language, user_language)
         target_lang_code = language_map.get(target_language, target_language)
         
@@ -268,7 +268,7 @@ def upload_file():
             # 创建上传记录，使用新的文件名
             record = UploadRecord(
                 user_id=current_user.id,
-                filename=new_filename,  # 使用新的文件名格式
+                filename=new_filename,  # 使用新的文件名格�?
                 stored_filename=stored_filename,
                 file_path=user_upload_dir,
                 file_size=file_size,
@@ -278,11 +278,11 @@ def upload_file():
             db.session.add(record)
             db.session.commit()
 
-            # 添加翻译任务到队列
-            priority = 0  # 默认优先级
+            # 添加翻译任务到队�?
+            priority = 0  # 默认优先�?
             
-            # 记录传递给任务队列的参数
-            logger.info(f"传递给任务队列的参数:")
+            # 记录传递给任务队列的参�?
+            logger.info(f"传递给任务队列的参�?")
             logger.info(f"  - 文件路径: {file_path}")
             logger.info(f"  - 模型: {model}")
             logger.info(f"  - 文本分割: {enable_text_splitting}")
@@ -316,7 +316,7 @@ def upload_file():
             if os.path.exists(file_path):
                 os.remove(file_path)
 
-            # 回滚数据库事务
+            # 回滚数据库事�?
             db.session.rollback()
 
             logger.error(f"文件上传失败: {str(e)}")
@@ -329,19 +329,19 @@ def upload_file():
 
 def process_queue(app, stop_words_list, custom_translations,source_language, target_language,bilingual_translation):
     """
-    处理翻译队列的函数
+    处理翻译队列的函�?
 
-    注意：此函数已被 EnhancedTranslationQueue 类的 _processor_loop 方法取代，
-    不再被主动调用。保留此函数仅用于兼容旧代码。
-    新的任务处理逻辑在 app/utils/enhanced_task_queue.py 中实现。
+    注意：此函数已被 EnhancedTranslationQueue 类的 _processor_loop 方法取代�?
+    不再被主动调用。保留此函数仅用于兼容旧代码�?
+    新的任务处理逻辑�?app/utils/enhanced_task_queue.py 中实现�?
     """
     while True:
         task = translation_queue.start_next_task()
         if not task:
-            time.sleep(1)  # 如果没有任务，等待1秒
+            time.sleep(1)  # 如果没有任务，等�?�?
             continue
 
-        # 创建应用上下文
+        # 创建应用上下�?
         with app.app_context():
             # try:
                     # 执行翻译
@@ -356,7 +356,7 @@ def process_queue(app, stop_words_list, custom_translations,source_language, tar
     
                     translation_queue.complete_current_task(success=True)
     
-                    # 更新数据库记录状态
+                    # 更新数据库记录状�?
                     record = UploadRecord.query.filter_by(
                         user_id=task['user_id'],
                         file_path=os.path.dirname(task['file_path']),
@@ -371,7 +371,7 @@ def process_queue(app, stop_words_list, custom_translations,source_language, tar
                 #     print(f"Translation error: {str(e)}")
                 #     translation_queue.complete_current_task(success=False, error=str(e))
     
-                    # 更新数据库记录状态
+                    # 更新数据库记录状�?
                     if 'record' in locals() and record:
                         record.status = 'failed'
                         try:
@@ -379,14 +379,14 @@ def process_queue(app, stop_words_list, custom_translations,source_language, tar
                         except:
                             db.session.rollback()
             # finally:
-            #     # 确保会话被正确清理
+            #     # 确保会话被正确清�?
             #     db.session.remove()
 
 
 @main.route('/task_status')
 @login_required
 def get_task_status():
-    """获取当前用户的任务状态"""
+    """获取当前用户的任务状�?""
     status = translation_queue.get_task_status_by_user(current_user.id)
     if status:
         # 转换日志格式以便前端显示
@@ -412,12 +412,12 @@ def get_task_status():
 @main.route('/queue_status')
 @login_required
 def get_queue_status():
-    """获取翻译队列状态信息"""
+    """获取翻译队列状态信�?""
     try:
         # 获取队列统计信息
         queue_stats = translation_queue.get_queue_stats()
 
-        # 添加详细的任务信息
+        # 添加详细的任务信�?
         active_tasks = queue_stats.get('processing', 0)  # 修正键名
         waiting_tasks = queue_stats.get('waiting', 0)
         max_concurrent = queue_stats.get('max_concurrent', 10)
@@ -434,7 +434,7 @@ def get_queue_status():
             'system_status': 'normal' if (active_tasks + waiting_tasks) < max_concurrent else 'busy'
         }
 
-        # 如果是管理员，提供更多详细信息
+        # 如果是管理员，提供更多详细信�?
         if current_user.is_administrator():
             detailed_stats['admin_info'] = {
                 'processor_running': translation_queue.running,
@@ -445,9 +445,9 @@ def get_queue_status():
         return jsonify(detailed_stats)
 
     except Exception as e:
-        logger.error(f"获取队列状态失败: {str(e)}")
+        logger.error(f"获取队列状态失�? {str(e)}")
         return jsonify({
-            'error': '获取队列状态失败',
+            'error': '获取队列状态失�?,
             'max_concurrent_tasks': 10,
             'active_tasks': 0,
             'waiting_tasks': 0,
@@ -458,60 +458,17 @@ def get_queue_status():
         }), 500
 
 
-@main.route('/api/pdf_translation_history')
-@login_required
-def pdf_translation_history():
-    """获取PDF翻译历史记录"""
-    try:
-        # 构建查询 - 只返回状态为 completed 的记录
-        query = UploadRecord.query.filter_by(user_id=current_user.id, status='completed')
-        
-        # 按上传时间倒序排列
-        records = query.order_by(UploadRecord.upload_time.desc()).all()
-
-        # 格式化记录
-        history_records = []
-        for record in records:
-            # 检查文件是否仍然存在
-            file_path = os.path.join(record.file_path, record.stored_filename)
-            file_exists = os.path.exists(file_path)
-
-            # 使用ISO格式返回时间，让前端正确处理时区
-            upload_time = datetime_to_isoformat(record.upload_time)
-            
-            # 直接使用数据库中存储的文件名
-            history_records.append({
-                'id': record.id,
-                'filename': record.filename,  # 使用数据库中存储的文件名
-                'file_size': record.file_size,
-                'upload_time': upload_time,
-                'status': record.status,
-                'file_exists': file_exists
-            })
-
-        return jsonify(history_records)
-        
-    except Exception as e:
-        logger.error(f"获取翻译历史记录失败: {e}")
-        import traceback
-        logger.error(f"错误详情: {traceback.format_exc()}")
-        return jsonify({
-            'status': 'error',
-            'message': '获取历史记录失败'
-        }), 500
-
-
 @main.route('/history')
 @login_required
 def get_history():
     try:
-        # 只返回状态为 completed 的记录
+        # 只返回状态为 completed 的记�?
         records = UploadRecord.query.filter_by(user_id=current_user.id, status='completed') \
             .order_by(UploadRecord.upload_time.desc()).all()
 
         history_records = []
         for record in records:
-            # 检查文件是否仍然存在
+            # 检查文件是否仍然存�?
             file_exists = os.path.exists(os.path.join(record.file_path, record.stored_filename))
 
             # 使用ISO格式返回时间，让前端正确处理时区
@@ -536,13 +493,51 @@ def get_history():
             'message': '获取历史记录失败'
         }), 500
 
+
+@main.route('/download/<int:record_id>')
+@login_required
+def download_file(record_id):
+    try:
+        # 获取上传记录
+        record = UploadRecord.query.get_or_404(record_id)
+
+        # 验证用户权限
+        if record.user_id != current_user.id:
+            return jsonify({'error': '无权访问此文�?}), 403
+
+        # 检查文件是否存�?
+        file_path = os.path.join(record.file_path, record.stored_filename)
+        if not os.path.exists(file_path):
+            return jsonify({'error': '文件不存�?}), 404
+
+        # 添加调试信息
+        print(f"Downloading file: {file_path}")
+        print(f"Original filename: {record.filename}")
+        file_path = os.path.abspath(file_path)
+        return send_file(file_path, as_attachment=True, download_name=record.filename)
+    except Exception as e:
+        print(f"Download error: {str(e)}")
+        return jsonify({'error': f'下载失败: {str(e)}'}), 500
+
+
+@main.route('/delete/<int:record_id>', methods=['DELETE'])
+@login_required
+def delete_file(record_id):
+    try:
+        # 获取上传记录
+        record = UploadRecord.query.get_or_404(record_id)
+
+        # 验证用户权限
+        if record.user_id != current_user.id:
+            return jsonify({'error': '无权删除此文�?}), 403
+
         try:
             # 删除物理文件
             file_path = os.path.join(record.file_path, record.stored_filename)
             if os.path.exists(file_path):
                 os.remove(file_path)
 
-            # 删除数据库记录
+            # 删除数据库记�?
             db.session.delete(record)
             db.session.commit()
 
@@ -604,7 +599,7 @@ def account_settings():
 @login_required
 def registration_approval():
     if not current_user.is_administrator():
-        flash('没有权限访问此页面')
+        flash('没有权限访问此页�?)
         return redirect(url_for('main.index'))
     return render_template('main/registration_approval.html')
 
@@ -614,7 +609,7 @@ def registration_approval():
 # def sso_management():
 #     """SSO管理页面"""
 #     if not current_user.is_administrator():
-#         flash('没有权限访问此页面')
+#         flash('没有权限访问此页�?)
 #         return redirect(url_for('main.index'))
 #     return render_template('main/sso_management.html')
 
@@ -687,11 +682,11 @@ def get_users():
 @login_required
 def approve_registration(id):
     if not current_user.is_administrator():
-        return jsonify({'error': '没有权限进行此操作'}), 403
+        return jsonify({'error': '没有权限进行此操�?}), 403
 
     user = User.query.get_or_404(id)
     if user.status != 'pending':
-        return jsonify({'error': '该用户已被审批'}), 400
+        return jsonify({'error': '该用户已被审�?}), 400
 
     try:
         user.status = 'approved'
@@ -708,18 +703,18 @@ def approve_registration(id):
 @login_required
 def reject_registration(id):
     if not current_user.is_administrator():
-        return jsonify({'error': '没有权限进行此操作'}), 403
+        return jsonify({'error': '没有权限进行此操�?}), 403
 
     user = User.query.get_or_404(id)
     if user.status != 'pending':
-        return jsonify({'error': '该用户已被审批'}), 400
+        return jsonify({'error': '该用户已被审�?}), 400
 
     try:
         user.status = 'rejected'
         user.approve_time = datetime.now(pytz.timezone('Asia/Shanghai'))
         user.approve_user_id = current_user.id
         db.session.commit()
-        return jsonify({'message': '已拒绝申请'})
+        return jsonify({'message': '已拒绝申�?})
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -729,7 +724,7 @@ def reject_registration(id):
 @login_required
 def disable_user(id):
     if not current_user.is_administrator():
-        return jsonify({'error': '没有权限进行此操作'}), 403
+        return jsonify({'error': '没有权限进行此操�?}), 403
 
     user = User.query.get_or_404(id)
     if user.status != 'approved':
@@ -738,7 +733,7 @@ def disable_user(id):
     try:
         user.status = 'disabled'
         db.session.commit()
-        return jsonify({'message': '用户已禁用'})
+        return jsonify({'message': '用户已禁�?})
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -748,7 +743,7 @@ def disable_user(id):
 @login_required
 def enable_user(id):
     if not current_user.is_administrator():
-        return jsonify({'error': '没有权限进行此操作'}), 403
+        return jsonify({'error': '没有权限进行此操�?}), 403
 
     user = User.query.get_or_404(id)
     if user.status != 'disabled':
@@ -757,7 +752,7 @@ def enable_user(id):
     try:
         user.status = 'approved'
         db.session.commit()
-        return jsonify({'message': '用户已启用'})
+        return jsonify({'message': '用户已启�?})
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -783,7 +778,7 @@ def get_translations():
         # 只查询公共的翻译数据
         query = Translation.query.filter_by(is_public=True)
     else:  # all 或其他值，默认为all
-        # 查询当前用户的所有私有数据和所有公共数据
+        # 查询当前用户的所有私有数据和所有公共数�?
         query = Translation.query.filter(
             db.or_(
                 db.and_(Translation.user_id == current_user.id, Translation.is_public == False),
@@ -905,7 +900,7 @@ def delete_translation(id):
             return jsonify({'error': '无权删除公共词库'}), 403
     else:
         if translation.user_id != current_user.id:
-            return jsonify({'error': '无权删除此翻译'}), 403
+            return jsonify({'error': '无权删除此翻�?}), 403
 
     try:
         db.session.delete(translation)
@@ -928,7 +923,7 @@ def update_translation(id):
             return jsonify({'error': '无权修改公共词库'}), 403
     else:
         if translation.user_id != current_user.id:
-            return jsonify({'error': '无权修改此翻译'}), 403
+            return jsonify({'error': '无权修改此翻�?}), 403
 
     data = request.get_json()
     english = data.get('english')
@@ -938,7 +933,7 @@ def update_translation(id):
     # Only admins can change the public status
     if 'is_public' in data and data['is_public'] != translation.is_public:
         if not current_user.is_administrator():
-            return jsonify({'error': '无权修改词条的公共状态'}), 403
+            return jsonify({'error': '无权修改词条的公共状�?}), 403
 
     if not english or not chinese:
         return jsonify({'error': '英文和中文翻译都是必填的'}), 400
@@ -1013,7 +1008,7 @@ def update_translation(id):
 @main.route('/api/translations/stats', methods=['GET'])
 @login_required
 def get_translation_stats():
-    """获取当前用户的词库统计信息"""
+    """获取当前用户的词库统计信�?""
     try:
         total_count = Translation.query.filter_by(user_id=current_user.id).count()
         return jsonify({
@@ -1026,11 +1021,11 @@ def get_translation_stats():
 @main.route('/api/train', methods=['POST'])
 @login_required
 def train_model():
-    """使用当前用户的词库数据进行训练"""
+    """使用当前用户的词库数据进行训�?""
     try:
 
         # Tokenizer()
-        # # TODO: 实现模型训练逻辑，只使用当前用户的数据
+        # # TODO: 实现模型训练逻辑，只使用当前用户的数�?
         # train_model()
         translations = Translation.query.all()
         return jsonify({
@@ -1054,13 +1049,13 @@ def load_data(json_path):
 
 
 def extract_ingredient(s, ingredient):
-    """提取匹配的成分"""
-    ingredients = re.sub(r'(\(|\（)', ',', s)
-    ingredients = re.sub(r'(\)|\）)', '', ingredients)
-    ingredients = re.split(r'[、,，]', ingredients)
+    """提取匹配的成�?""
+    ingredients = re.sub(r'(\(|\�?', ',', s)
+    ingredients = re.sub(r'(\)|\�?', '', ingredients)
+    ingredients = re.split(r'[�?，]', ingredients)
     ingredients = [ing.replace(' ', "") for ing in ingredients]
-    # 去掉类似于"又名"、"以"、"记"等词
-    cleaned_ingredient_list = [re.sub(r'(又名|以|记)', '', ing) for ing in ingredients]
+    # 去掉类似�?又名"�?�?�?�?等词
+    cleaned_ingredient_list = [re.sub(r'(又名|以|�?', '', ing) for ing in ingredients]
 
     for i in cleaned_ingredient_list:
         if ingredient in i:
@@ -1070,14 +1065,14 @@ def extract_ingredient(s, ingredient):
 
 def clean_food_name(food_name):
     """清理食品名称"""
-    return re.sub(r'备案入.*', '', food_name)
+    return re.sub(r'备案�?*', '', food_name)
 
 
 @main.route('/search', methods=['POST'])
 @login_required
 def search_ingredient():
     # print(request.form['query'])
-    # 临时返回空结果，直到实现完整的搜索功能
+    # 临时返回空结果，直到实现完整的搜索功�?
     return jsonify([])
 
 
@@ -1089,7 +1084,7 @@ def download_ingredient_file():
     return jsonify({'error': '功能暂未实现'}), 500
 
 
-# 允许的PDF文件扩展名
+# 允许的PDF文件扩展�?
 PDF_ALLOWED_EXTENSIONS = {'pdf'}
 
 
@@ -1101,9 +1096,9 @@ def allowed_pdf_file(filename):
 @login_required
 def get_pdf(filename):
     try:
-        # 获取上传文件夹路径
+        # 获取上传文件夹路�?
         upload_folder = current_app.config['UPLOAD_FOLDER']
-        logger.info(f"PDF请求: {filename}, 上传文件夹: {upload_folder}")
+        logger.info(f"PDF请求: {filename}, 上传文件�? {upload_folder}")
         
         if not os.path.exists(upload_folder):
             logger.error(f"上传文件夹不存在: {upload_folder}")
@@ -1122,19 +1117,19 @@ def get_pdf(filename):
                 logger.error(f"无法创建PDF目录: {user_pdf_dir}, 错误: {str(e)}")
                 return jsonify({'error': f'无法创建PDF目录: {str(e)}'}), 500
                 
-        # 构建完整的文件路径
+        # 构建完整的文件路�?
         file_path = os.path.join(user_pdf_dir, filename)
-        file_path = os.path.abspath(file_path)  # 转换为绝对路径
+        file_path = os.path.abspath(file_path)  # 转换为绝对路�?
         logger.info(f"完整的PDF文件路径: {file_path}")
 
         if not os.path.exists(file_path):
-            logger.error(f"PDF文件不存在: {file_path}")
+            logger.error(f"PDF文件不存�? {file_path}")
             
-            # 检查是否存在于其他可能的位置
+            # 检查是否存在于其他可能的位�?
             alt_paths = [
-                os.path.join(upload_folder, filename),  # 直接在上传文件夹中
-                os.path.join(upload_folder, 'pdf', filename),  # 在pdf子文件夹中
-                os.path.join(current_app.root_path, 'static', 'uploads', filename)  # 在静态文件夹中
+                os.path.join(upload_folder, filename),  # 直接在上传文件夹�?
+                os.path.join(upload_folder, 'pdf', filename),  # 在pdf子文件夹�?
+                os.path.join(current_app.root_path, 'static', 'uploads', filename)  # 在静态文件夹�?
             ]
             
             for alt_path in alt_paths:
@@ -1143,13 +1138,13 @@ def get_pdf(filename):
                     file_path = alt_path
                     break
             else:
-                return jsonify({'error': '文件不存在'}), 404
+                return jsonify({'error': '文件不存�?}), 404
 
-        # 检查文件权限
+        # 检查文件权�?
         try:
             # 尝试打开文件进行读取测试
             with open(file_path, 'rb') as f:
-                f.read(1)  # 只读取1字节进行测试
+                f.read(1)  # 只读�?字节进行测试
             logger.info(f"文件权限检查通过: {file_path}")
         except PermissionError:
             logger.error(f"无法读取PDF文件(权限错误): {file_path}")
@@ -1157,7 +1152,7 @@ def get_pdf(filename):
             try:
                 import stat
                 os.chmod(file_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
-                logger.info(f"已修改文件权限: {file_path}")
+                logger.info(f"已修改文件权�? {file_path}")
             except Exception as e:
                 logger.error(f"无法修改文件权限: {str(e)}")
                 return jsonify({'error': f'文件无法访问(权限错误): {str(e)}'}), 403
@@ -1167,14 +1162,14 @@ def get_pdf(filename):
 
         logger.info(f"准备提供PDF文件: {file_path}")
         try:
-            # 使用安全的方式提供文件
+            # 使用安全的方式提供文�?
             response = send_file(
                 file_path,
                 mimetype='application/pdf',
                 as_attachment=False,
                 download_name=filename
             )
-            # 添加必要的安全头部
+            # 添加必要的安全头�?
             response.headers['Access-Control-Allow-Origin'] = '*'
             response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
             response.headers['Pragma'] = 'no-cache'
@@ -1190,11 +1185,11 @@ def get_pdf(filename):
             if request.is_secure:
                 response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
             
-            logger.info(f"PDF文件已成功提供: {file_path}")
+            logger.info(f"PDF文件已成功提�? {file_path}")
             return response
 
         except Exception as e:
-            logger.error(f"提供PDF文件时出错: {str(e)}")
+            logger.error(f"提供PDF文件时出�? {str(e)}")
             raise
 
     except Exception as e:
@@ -1207,7 +1202,7 @@ def get_pdf(filename):
 def ocr_region():
     try:
         data = request.get_json()
-        image_data = data.get('imageData')  # base64格式的图像数据
+        image_data = data.get('imageData')  # base64格式的图像数�?
 
         # 使用异步OCR处理
         from ..function.pdf_annotate_async import ocr_image_region_async
@@ -1282,7 +1277,7 @@ def get_annotations(filename):
         file_path = os.path.join(annotations_dir, filename)
 
         if not os.path.exists(file_path):
-            return jsonify({'error': '注释文件不存在'}), 404
+            return jsonify({'error': '注释文件不存�?}), 404
 
         with open(file_path, 'r', encoding='utf-8') as f:
             annotations = json.load(f)
@@ -1317,7 +1312,7 @@ def get_annotation_files():
                     'created_time': datetime.fromtimestamp(os.path.getctime(file_path)).strftime('%Y-%m-%d %H:%M:%S')
                 })
 
-        # 按创建时间降序排序
+        # 按创建时间降序排�?
         files.sort(key=lambda x: x['created_time'], reverse=True)
         return jsonify(files)
 
@@ -1339,7 +1334,7 @@ def get_sso_users():
 
         users_data = []
         for user in sso_users:
-            # 格式化时间
+            # 格式化时�?
             last_login = format_datetime(user.last_login)
             register_time = format_datetime(user.register_time)
 
@@ -1368,11 +1363,11 @@ def get_sso_users():
 @main.route('/ocr_status', methods=['GET'])
 @login_required
 def get_ocr_status():
-    """获取OCR状态信息"""
+    """获取OCR状态信�?""
     try:
         from ..function.pdf_annotate_async import pdf_processor
 
-        # 获取OCR读取器信息
+        # 获取OCR读取器信�?
         ocr_info = pdf_processor.get_ocr_info()
 
         return jsonify({
@@ -1381,26 +1376,26 @@ def get_ocr_status():
         })
 
     except Exception as e:
-        logger.error(f"获取OCR状态失败: {str(e)}")
+        logger.error(f"获取OCR状态失�? {str(e)}")
         return jsonify({
             'success': False,
-            'error': f'获取状态失败: {str(e)}'
+            'error': f'获取状态失�? {str(e)}'
         }), 500
 
 
 @main.route('/get_queue_status')
 def get_detailed_queue_status():
-    """获取详细的翻译队列状态（旧版API）"""
+    """获取详细的翻译队列状态（旧版API�?""
     username = session.get('username', '')
     if not username:
-        return jsonify({'code': 403, 'msg': '用户未登录'}), 403
+        return jsonify({'code': 403, 'msg': '用户未登�?}), 403
 
     try:
         # 获取队列状态和统计信息
         status_info = translation_queue.get_queue_status()
         user_tasks = translation_queue.get_user_tasks(username)
 
-        # 轮询用户任务以获取当前状态
+        # 轮询用户任务以获取当前状�?
         user_task_details = []
         for task in user_tasks:
             task_detail = {
@@ -1422,8 +1417,8 @@ def get_detailed_queue_status():
             'user_tasks': user_task_details
         })
     except Exception as e:
-        logger.error(f"获取队列状态失败: {str(e)}")
-        return jsonify({'code': 500, 'msg': f'获取队列状态失败: {str(e)}'}), 500
+        logger.error(f"获取队列状态失�? {str(e)}")
+        return jsonify({'code': 500, 'msg': f'获取队列状态失�? {str(e)}'}), 500
 
 
 @main.route('/cancel_task/<task_id>')
@@ -1431,15 +1426,15 @@ def cancel_task(task_id):
     """取消翻译任务"""
     username = session.get('username', '')
     if not username:
-        return jsonify({'code': 403, 'msg': '用户未登录'}), 403
+        return jsonify({'code': 403, 'msg': '用户未登�?}), 403
 
     try:
         # 尝试取消任务
         result = translation_queue.cancel_task(task_id, username)
         if result:
-            return jsonify({'code': 200, 'msg': '任务已取消'})
+            return jsonify({'code': 200, 'msg': '任务已取�?})
         else:
-            return jsonify({'code': 400, 'msg': '取消任务失败，任务可能不存在或已经开始处理'}), 400
+            return jsonify({'code': 400, 'msg': '取消任务失败，任务可能不存在或已经开始处�?}), 400
     except Exception as e:
         logger.error(f"取消任务失败: {str(e)}")
         return jsonify({'code': 500, 'msg': f'取消任务失败: {str(e)}'}), 500
@@ -1451,7 +1446,7 @@ def logs():
     """日志管理页面"""
     # 检查管理员权限
     if not current_user.is_administrator():
-        flash('没有权限访问此页面', 'error')
+        flash('没有权限访问此页�?, 'error')
         return redirect(url_for('main.index'))
     return render_template('main/logs.html')
 
@@ -1511,16 +1506,16 @@ def start_translation():
         temp_upload_dir = os.path.join(upload_folder, 'temp')
         os.makedirs(temp_upload_dir, exist_ok=True)
 
-        # 保存上传的文件
+        # 保存上传的文�?
         filename = secure_filename(file.filename)
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         unique_filename = f"{timestamp}_{task_id}_{filename}"
         file_path = os.path.join(temp_upload_dir, unique_filename)
         file.save(file_path)
 
-        logger.info(f"公开API文件已保存: {file_path}")
+        logger.info(f"公开API文件已保�? {file_path}")
 
-        # 初始化任务状态
+        # 初始化任务状�?
         simple_task_status[task_id] = {
             'status': 'processing',
             'progress': 0,
@@ -1540,13 +1535,13 @@ def start_translation():
         translation_thread.daemon = True
         translation_thread.start()
 
-        logger.info(f"公开API翻译任务已启动: {task_id}")
+        logger.info(f"公开API翻译任务已启�? {task_id}")
 
         # 立即返回任务ID
         return jsonify({
             'task_id': task_id,
             'status': 'started',
-            'message': '翻译任务已启动'
+            'message': '翻译任务已启�?
         })
 
     except Exception as e:
@@ -1555,7 +1550,7 @@ def start_translation():
 
 
 def execute_simple_translation_task(task_id, file_path, filename):
-    """执行简单翻译任务（在后台线程中运行）"""
+    """执行简单翻译任务（在后台线程中运行�?""
     try:
         logger.info(f"开始执行公开API翻译任务: {task_id}")
 
@@ -1573,7 +1568,7 @@ def execute_simple_translation_task(task_id, file_path, filename):
         # 翻译参数（使用默认值）
         stop_words_list = []
         custom_translations = {}
-        select_page = []  # 处理所有页面
+        select_page = []  # 处理所有页�?
         source_language = "en"
         target_language = "zh"
         bilingual_translation = "1"  # 双语模式
@@ -1625,11 +1620,11 @@ def get_simple_task_status(task_id):
     """获取特定任务状态（公开API，不需要认证）"""
     try:
         if task_id not in simple_task_status:
-            return jsonify({'status': 'not_found', 'error': '任务不存在'}), 404
+            return jsonify({'status': 'not_found', 'error': '任务不存�?}), 404
 
         task = simple_task_status[task_id]
 
-        # 返回任务状态
+        # 返回任务状�?
         response = {
             'status': task['status'],
             'progress': task['progress'],
@@ -1643,7 +1638,7 @@ def get_simple_task_status(task_id):
         return jsonify(response)
 
     except Exception as e:
-        logger.error(f"获取公开API任务状态失败: {str(e)}")
+        logger.error(f"获取公开API任务状态失�? {str(e)}")
         return jsonify({'status': 'error', 'error': str(e)}), 500
 
 
@@ -1652,7 +1647,7 @@ def download_simple_translated_file(task_id):
     """下载翻译后的文件（公开API，不需要认证）"""
     try:
         if task_id not in simple_task_status:
-            return jsonify({'error': '任务不存在'}), 404
+            return jsonify({'error': '任务不存�?}), 404
 
         task = simple_task_status[task_id]
 
@@ -1660,12 +1655,12 @@ def download_simple_translated_file(task_id):
             return jsonify({'error': '任务尚未完成'}), 400
 
         if task_id not in simple_task_files:
-            return jsonify({'error': '翻译文件不存在'}), 404
+            return jsonify({'error': '翻译文件不存�?}), 404
 
         file_path = simple_task_files[task_id]
 
         if not os.path.exists(file_path):
-            return jsonify({'error': '文件不存在'}), 404
+            return jsonify({'error': '文件不存�?}), 404
 
         return send_file(
             file_path,
@@ -1699,19 +1694,19 @@ def ppt_translate_simple():
         temp_upload_dir = os.path.join(upload_folder, 'temp')
         os.makedirs(temp_upload_dir, exist_ok=True)
 
-        # 保存上传的文件
+        # 保存上传的文�?
         filename = secure_filename(file.filename)
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         unique_filename = f"{timestamp}_{filename}"
         file_path = os.path.join(temp_upload_dir, unique_filename)
         file.save(file_path)
 
-        logger.info(f"同步API文件已保存: {file_path}")
+        logger.info(f"同步API文件已保�? {file_path}")
 
         # 翻译参数（使用默认值）
         stop_words_list = []
         custom_translations = {}
-        select_page = []  # 处理所有页面
+        select_page = []  # 处理所有页�?
         source_language = "en"
         target_language = "zh"
         bilingual_translation = "1"  # 双语模式
@@ -1749,15 +1744,15 @@ def ppt_translate_simple():
 @main.route('/db_stats')
 @login_required
 def db_stats():
-    """数据库状态页面"""
+    """数据库状态页�?""
     if not current_user.is_administrator():
         flash('您没有权限访问此页面')
         return redirect(url_for('main.index'))
     
-    # 获取数据库统计信息
+    # 获取数据库统计信�?
     db_stats = get_db_stats()
     
-    # 获取线程池统计信息
+    # 获取线程池统计信�?
     thread_pool_stats = thread_pool.get_stats()
     
     # 获取任务队列统计信息
@@ -1777,7 +1772,7 @@ def get_db_stats_data():
     if not current_user.is_administrator():
         return jsonify({'error': '没有权限访问此API'}), 403
     
-    # 获取数据库统计信息
+    # 获取数据库统计信�?
     db_stats = get_db_stats()
     
     return jsonify(db_stats)
@@ -1786,21 +1781,21 @@ def get_db_stats_data():
 @main.route('/recycle_connections', methods=['POST'])
 @login_required
 def recycle_connections():
-    """回收空闲数据库连接"""
+    """回收空闲数据库连�?""
     if not current_user.is_administrator():
-        return jsonify({'success': False, 'message': '没有权限执行此操作'}), 403
+        return jsonify({'success': False, 'message': '没有权限执行此操�?}), 403
     
     try:
         # 调用翻译队列中的回收连接方法
         result = translation_queue.recycle_idle_connections()
         
         # 记录操作日志
-        logger.info(f"管理员 {current_user.username} 手动回收了数据库空闲连接")
+        logger.info(f"管理�?{current_user.username} 手动回收了数据库空闲连接")
         
         return jsonify(result)
     
     except Exception as e:
-        logger.error(f"回收数据库连接失败: {str(e)}")
+        logger.error(f"回收数据库连接失�? {str(e)}")
         return jsonify({
             'success': False,
             'message': f'回收连接失败: {str(e)}',
@@ -1826,7 +1821,7 @@ def get_db_stats():
             'max_overflow': engine.pool._max_overflow
         }
         
-        # 获取连接池配置
+        # 获取连接池配�?
         try:
             stats['pool_config'] = {
                 'size': engine.pool.size(),
@@ -1855,7 +1850,7 @@ def get_db_stats():
                 conn_id = str(conn)
                 checkout_time = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
                 duration = time.time() - timestamp
-                duration_str = f"{duration:.2f}秒"
+                duration_str = f"{duration:.2f}�?
                 
                 if duration > 3600:
                     hours = int(duration / 3600)
@@ -1864,43 +1859,43 @@ def get_db_stats():
                 elif duration > 60:
                     minutes = int(duration / 60)
                     seconds = int(duration % 60)
-                    duration_str = f"{minutes}分钟{seconds}秒"
+                    duration_str = f"{minutes}分钟{seconds}�?
                 
                 checked_out_details.append({
                     'connection_id': conn_id,
                     'checkout_time': checkout_time,
                     'duration': duration_str,
-                    'stack_trace': '\n'.join(traceback) if traceback else '无堆栈信息'
+                    'stack_trace': '\n'.join(traceback) if traceback else '无堆栈信�?
                 })
             
             stats['checked_out_details'] = checked_out_details
         except Exception as e:
             stats['checked_out_details'] = []
-            logger.warning(f"获取已签出连接详情失败: {str(e)}")
+            logger.warning(f"获取已签出连接详情失�? {str(e)}")
         
         return stats
     
     except Exception as e:
-        logger.error(f"获取数据库统计信息失败: {str(e)}")
-        return {'error': f'获取数据库统计信息失败: {str(e)}'}
+        logger.error(f"获取数据库统计信息失�? {str(e)}")
+        return {'error': f'获取数据库统计信息失�? {str(e)}'}
 
 
 @main.route('/system_status', methods=['GET'])
 @login_required
 def system_status():
-    """获取系统状态信息"""
+    """获取系统状态信�?""
     if not current_user.is_administrator():
         return jsonify({'error': '没有权限访问此API'}), 403
     
     try:
-        # 获取线程池状态
+        # 获取线程池状�?
         thread_pool_stats = thread_pool.get_stats()
         thread_pool_health = thread_pool.get_health_status()
         
-        # 获取任务队列状态
+        # 获取任务队列状�?
         queue_stats = translation_queue.get_queue_stats()
         
-        # 获取数据库连接状态
+        # 获取数据库连接状�?
         db_stats = get_db_stats()
         
         # 系统内存使用情况
@@ -1920,7 +1915,7 @@ def system_status():
             'logical_count': psutil.cpu_count(logical=True)
         }
         
-        # 返回汇总状态
+        # 返回汇总状�?
         status = {
             'thread_pool': {
                 'stats': thread_pool_stats,
@@ -1936,30 +1931,30 @@ def system_status():
         return jsonify(status)
         
     except Exception as e:
-        logger.error(f"获取系统状态失败: {str(e)}")
+        logger.error(f"获取系统状态失�? {str(e)}")
         return jsonify({
-            'error': f'获取系统状态失败: {str(e)}'
+            'error': f'获取系统状态失�? {str(e)}'
         }), 500
 
 
 @main.route('/system/reset_thread_pool', methods=['POST'])
 @login_required
 def reset_thread_pool():
-    """重置线程池"""
+    """重置线程�?""
     if not current_user.is_administrator():
-        return jsonify({'success': False, 'message': '没有权限执行此操作'}), 403
+        return jsonify({'success': False, 'message': '没有权限执行此操�?}), 403
     
     try:
         # 记录操作日志
-        logger.warning(f"管理员 {current_user.username} 正在重置线程池")
+        logger.warning(f"管理�?{current_user.username} 正在重置线程�?)
         
-        # 获取线程池配置
+        # 获取线程池配�?
         stats_before = thread_pool.get_stats()
         
-        # 重新配置线程池
+        # 重新配置线程�?
         thread_pool.configure()
         
-        # 获取重置后的状态
+        # 获取重置后的状�?
         stats_after = thread_pool.get_stats()
         
         return jsonify({
@@ -1970,10 +1965,10 @@ def reset_thread_pool():
         })
         
     except Exception as e:
-        logger.error(f"重置线程池失败: {str(e)}")
+        logger.error(f"重置线程池失�? {str(e)}")
         return jsonify({
             'success': False,
-            'message': f'重置线程池失败: {str(e)}',
+            'message': f'重置线程池失�? {str(e)}',
             'error': str(e)
         }), 500
 
@@ -1983,27 +1978,27 @@ def reset_thread_pool():
 def reset_task_queue():
     """重置任务队列"""
     if not current_user.is_administrator():
-        return jsonify({'success': False, 'message': '没有权限执行此操作'}), 403
+        return jsonify({'success': False, 'message': '没有权限执行此操�?}), 403
     
     try:
         # 记录操作日志
-        logger.warning(f"管理员 {current_user.username} 正在重置任务队列")
+        logger.warning(f"管理�?{current_user.username} 正在重置任务队列")
         
-        # 获取任务队列状态
+        # 获取任务队列状�?
         stats_before = translation_queue.get_queue_stats()
         
-        # 停止处理器
+        # 停止处理�?
         translation_queue.stop_processor()
         
-        # 重新启动处理器
+        # 重新启动处理�?
         translation_queue.start_processor()
         
-        # 获取重置后的状态
+        # 获取重置后的状�?
         stats_after = translation_queue.get_queue_stats()
         
         return jsonify({
             'success': True,
-            'message': '任务队列已重置',
+            'message': '任务队列已重�?,
             'before': stats_before,
             'after': stats_after
         })
@@ -2020,10 +2015,10 @@ def reset_task_queue():
 @main.route('/system_monitoring')
 @login_required
 def system_monitoring():
-    """系统监控页面 - 显示线程池、任务队列和数据库连接状态"""
+    """系统监控页面 - 显示线程池、任务队列和数据库连接状�?""
     # 验证用户是否有管理员权限
     if not current_user.is_administrator:
-        flash('您没有访问此页面的权限。', 'danger')
+        flash('您没有访问此页面的权限�?, 'danger')
         return redirect(url_for('main.index'))
     
     return render_template('main/system_monitoring.html', user=current_user)
@@ -2034,13 +2029,13 @@ def system_monitoring():
 def pdf_annotate():
     """PDF注释页面"""
     try:
-        # 添加详细的日志
+        # 添加详细的日�?
         logger.info("访问 pdf_annotate 页面")
         return render_template('main/pdf_annotate.html')
     except Exception as e:
         logger.error(f"渲染 pdf_annotate 页面出错: {str(e)}")
-        # 返回一个简单的错误页面，避免模板渲染问题
-        return f"PDF注释功能临时不可用: {str(e)}", 500
+        # 返回一个简单的错误页面，避免模板渲染问�?
+        return f"PDF注释功能临时不可�? {str(e)}", 500
 
 
 @main.route('/upload_pdf', methods=['POST'])
@@ -2062,14 +2057,14 @@ def upload_pdf():
 
         # 生成安全的文件名和唯一的存储文件名
         original_filename = secure_filename(file.filename)
-        logger.info(f"安全文件名: {original_filename}")
+        logger.info(f"安全文件�? {original_filename}")
         stored_filename = f"{uuid.uuid4().hex}.pdf"
 
-        # 确保上传文件夹存在
+        # 确保上传文件夹存�?
         upload_folder = current_app.config['UPLOAD_FOLDER']
         if not os.path.exists(upload_folder):
             os.makedirs(upload_folder)
-            logger.info(f"创建上传文件夹: {upload_folder}")
+            logger.info(f"创建上传文件�? {upload_folder}")
 
         # 创建用户PDF目录
         user_pdf_dir = os.path.join(upload_folder, f"{current_user.username}_pdfs")
@@ -2081,15 +2076,15 @@ def upload_pdf():
 
         # 保存文件
         file_path = os.path.join(user_pdf_dir, stored_filename)
-        file_path = os.path.abspath(file_path)  # 转换为绝对路径
-        logger.info(f"保存文件的绝对路径: {file_path}")
+        file_path = os.path.abspath(file_path)  # 转换为绝对路�?
+        logger.info(f"保存文件的绝对路�? {file_path}")
 
         file.save(file_path)
         logger.info(f"PDF文件已保存到: {file_path}")
 
         # 验证文件是否成功保存
         if not os.path.exists(file_path):
-            raise Exception(f"文件保存失败，路径: {file_path}")
+            raise Exception(f"文件保存失败，路�? {file_path}")
 
         # 检查文件权限并尝试修复
         try:
@@ -2100,14 +2095,14 @@ def upload_pdf():
             try:
                 import stat
                 os.chmod(file_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
-                logger.info(f"已修改文件权限: {file_path}")
+                logger.info(f"已修改文件权�? {file_path}")
             except Exception as e:
                 logger.error(f"无法修改文件权限: {str(e)}")
-                raise Exception(f"文件无法访问，权限问题: {str(e)}")
+                raise Exception(f"文件无法访问，权限问�? {str(e)}")
         except Exception as e:
             raise Exception(f"文件读取测试失败: {str(e)}")
 
-        # 生成完整的URL，包含域名和协议，确保使用与当前请求相同的协议
+        # 生成完整的URL，包含域名和协议，确保使用与当前请求相同的协�?
         file_url = url_for('main.get_pdf', filename=stored_filename, _external=True)
         
         # 确保URL使用与当前请求相同的协议(HTTP或HTTPS)
@@ -2115,1121 +2110,166 @@ def upload_pdf():
             file_url = file_url.replace('http:', 'https:', 1)
         
         logger.info(f"生成的PDF URL: {file_url}")
-
-        return jsonify({
-            'message': '文件上传成功',
-            'filename': original_filename,
-            'file_url': file_url,
-            'file_path': file_path  # 添加服务器端文件路径
-        })
-
+        return jsonify({'success': True, 'url': file_url, 'filename': stored_filename})
     except Exception as e:
-        logger.error(f"PDF上传错误: {str(e)}")
-        # 如果文件已经保存，则删除
-        if 'file_path' in locals() and os.path.exists(file_path):
-            try:
-                os.remove(file_path)
-                logger.info(f"清理失败的上传: {file_path}")
-            except Exception as cleanup_error:
-                logger.error(f"无法清理文件: {cleanup_error}")
-        return jsonify({'error': f'上传失败: {str(e)}'}), 500
+        logger.error(f"处理PDF文件时出�? {e}")
+        import traceback
+        logger.error(f"错误详情: {traceback.format_exc()}")
+        return jsonify({'success': False, 'error': f'处理PDF文件失败: {str(e)}'}), 500
 
-
+# PDF处理相关导入
 import zipfile
 import requests
+import traceback
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import os
 
-@main.route('/translate_pdf', methods=['POST'])
-@login_required
-def translate_pdf():
-    """处理PDF翻译请求"""
+from flask import Blueprint, request, jsonify, session
+from flask_login import login_required
+
+from app.function.image_ocr.ocr_api import MinerUAPI
+from app.function.translate.qwen import QwenTranslator
+
+import pypandoc
+
+main_bp = Blueprint('main', __name__)
+
+UPLOAD_FOLDER = 'uploads'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)  # 确保上传目录存在
+
+def allowed_pdf_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'pdf'}
+
+@main_bp.route('/process_pdf', methods=['POST'])
+def process_pdf():
     try:
-        import zipfile
-        import requests
-        from werkzeug.utils import secure_filename
-        from datetime import datetime
-        import os
-        
-        logger.info("收到PDF翻译请求")
-        logger.info(f"请求方法: {request.method}")
-        logger.info(f"请求内容类型: {request.content_type}")
-        logger.info(f"请求表单数据: {list(request.form.keys())}")
-        logger.info(f"请求文件数据: {list(request.files.keys())}")
-        
+        # 检查是否有文件上传
         if 'file' not in request.files:
-            logger.error("请求中没有文件")
-            return jsonify({'success': False, 'error': '没有上传文件'}), 400
+            logger.error("未找到上传的文件")
+            return jsonify({'success': False, 'error': '未找到上传的文件'}), 400
         
         file = request.files['file']
-        logger.info(f"接收到文件: {file.filename}")
-        logger.info(f"文件内容类型: {file.content_type}")
-        
         if file.filename == '':
-            logger.error("文件名为空")
-            return jsonify({'success': False, 'error': '文件名为空'}), 400
-            
-        # 检查文件扩展名
-        if not allowed_pdf_file(file.filename):
-            logger.error(f"不支持的文件格式: {file.filename}")
-            return jsonify({'success': False, 'error': '不支持的文件格式，请上传PDF文件'}), 400
-    
-        # 验证文件MIME类型
-        file_content = file.read(1024)  # 读取前1024字节检查文件头
-        file.seek(0)  # 重置文件指针
-        
-        # 检查PDF文件头
-        if not file_content.startswith(b'%PDF-'):
-            logger.error(f"文件不是有效的PDF格式: {file.filename}")
-            logger.error(f"文件头内容: {file_content[:10]}")
-            return jsonify({'success': False, 'error': '文件不是有效的PDF格式，请确保上传的是PDF文件'}), 400
-            
-        # 保存上传的PDF文件
+            logger.error("文件名为�?)
+            return jsonify({'success': False, 'error': '文件名为�?}), 400
+
+        # 保存上传的文�?
         filename = secure_filename(file.filename)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        unique_filename = f"{timestamp}_{filename}"
-        
-        logger.info(f"处理文件: {filename}, 保存为: {unique_filename}")
-        
-        # 确保上传目录存在 - 使用项目根目录下的uploads文件夹
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        upload_folder = current_app.config['UPLOAD_FOLDER']
-        
-        # 确保使用正确的上传文件夹路径
-        # UPLOAD_FOLDER配置是相对于项目根目录的
-        if not os.path.isabs(upload_folder):
-            upload_folder = os.path.join(project_root, upload_folder)
-            
-        pdf_upload_dir = os.path.join(upload_folder, 'pdf_uploads')
-        pdf_output_dir = os.path.join(upload_folder, 'pdf_outputs')
-        
-        # 确保目录存在
-        os.makedirs(pdf_upload_dir, exist_ok=True)
-        os.makedirs(pdf_output_dir, exist_ok=True)
-        
-        logger.info(f"项目根目录: {project_root}")
-        logger.info(f"上传文件夹配置: {current_app.config['UPLOAD_FOLDER']}")
-        logger.info(f"实际上传文件夹路径: {upload_folder}")
-        logger.info(f"PDF上传目录: {pdf_upload_dir}")
-        logger.info(f"PDF输出目录: {pdf_output_dir}")
-        
-        pdf_path = os.path.join(pdf_upload_dir, unique_filename)
+        pdf_path = os.path.join(UPLOAD_FOLDER, filename)
         file.save(pdf_path)
-        
-        logger.info(f"文件已保存到: {pdf_path}")
-        
-        # 验证文件是否正确保存
-        if not os.path.exists(pdf_path):
-            logger.error(f"文件保存失败，路径不存在: {pdf_path}")
-            return jsonify({'success': False, 'error': '文件保存失败'}), 500
-            
-        file_size = os.path.getsize(pdf_path)
-        logger.info(f"保存的文件大小: {file_size} 字节")
-        
-        if file_size == 0:
-            logger.error("保存的文件为空")
-            return jsonify({'success': False, 'error': '上传的文件为空'}), 400
-        
+        logger.info(f"文件保存路径: {pdf_path}")
+
         # 初始化MinerU API
         try:
-            from app.function.image_ocr.ocr_api import MinerUAPI
-            logger.info("初始化MinerU API")
             mineru_api = MinerUAPI()
-            logger.info("MinerU API初始化成功")
-        except ValueError as e:
-            logger.error(f"MinerU API密钥未配置: {e}")
-            return jsonify({'success': False, 'error': 'PDF处理服务未正确配置'}), 500
-        except ImportError as e:
-            logger.error(f"无法导入MinerU API模块: {e}")
-            return jsonify({'success': False, 'error': 'PDF处理服务模块缺失'}), 500
+            logger.info("MinerU API初始化成�?)
         except Exception as e:
-            logger.error(f"MinerU API初始化失败: {e}")
-            return jsonify({'success': False, 'error': f'PDF处理服务初始化失败: {str(e)}'}), 500
-        
+            logger.error(f"MinerU API初始化失�? {e}")
+            return jsonify({'success': False, 'error': f'MinerU API初始化失�? {str(e)}'}), 500
+
         # 使用MinerU处理PDF
         logger.info(f"开始使用MinerU处理PDF: {pdf_path}")
         result = mineru_api.process_pdf(pdf_path)
         logger.info(f"MinerU处理结果: {result}")
         
         if not result:
-            logger.error("MinerU处理PDF返回空结果")
-            return jsonify({'success': False, 'error': 'PDF处理失败'}), 500
+            logger.error("MinerU处理PDF返回空结�?)
+            return jsonify({'success': False, 'error': 'PDF处理失败，MinerU返回空结�?}), 500
         
-        # 检查结果中的状态码
-        if 'code' in result and result['code'] != 0:
-            error_msg = result.get('msg', '未知错误')
+        # 检查是否是错误响应
+        if isinstance(result, dict) and 'success' in result and not result['success']:
+            error_msg = result.get('error', '未知错误')
             logger.error(f"MinerU处理PDF失败: {error_msg}")
             return jsonify({'success': False, 'error': f'PDF处理失败: {error_msg}'}), 500
         
-        # 获取任务ID和结果
-        if 'data' not in result or 'task_id' not in result['data']:
-            logger.error("MinerU返回结果缺少task_id")
+        # 检查结果中的状态码
+        if isinstance(result, dict) and 'code' in result:
+            if result['code'] != 0:
+                error_msg = result.get('msg', '未知错误')
+                logger.error(f"MinerU处理PDF失败: {error_msg}")
+                return jsonify({'success': False, 'error': f'PDF处理失败: {error_msg}'}), 500
+            
+            # 获取任务ID和结�?
+            if 'data' in result and 'task_id' in result['data']:
+                task_id = result['data']['task_id']
+                logger.info(f"任务ID: {task_id}")
+                
+                # 等待任务完成并获取结�?
+                task_result = mineru_api._wait_for_task_completion(task_id, {
+                    'Authorization': f'Bearer {mineru_api.token}',
+                    'User-Agent': 'FCIAI2.0/1.0'
+                })
+                
+                if task_result and 'code' in task_result and task_result['code'] == 0:
+                    # 下载结果
+                    zip_url = task_result['data']['full_zip_url']
+                    zip_path = mineru_api.download_result(zip_url, task_id)
+                    
+                    if zip_path:
+                        # 解压并读取结�?
+                        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                            zip_ref.extractall(os.path.dirname(zip_path))
+                        
+                        # 查找markdown文件
+                        md_file = None
+                        for file_item in os.listdir(os.path.dirname(zip_path)):
+                            if file_item.endswith('.md'):
+                                md_file = os.path.join(os.path.dirname(zip_path), file_item)
+                                break
+                        
+                        if md_file:
+                            with open(md_file, 'r', encoding='utf-8') as f:
+                                content = f.read()
+                            
+                            # 如果配置了翻译API，则进行翻译
+                            qwen_api_key = os.getenv('QWEN_API_KEY')
+                            if qwen_api_key:
+                                try:
+                                    translator = QwenTranslator(api_key=qwen_api_key)
+                                    translated_content = translator.translate_text(content)
+                                    if translated_content:
+                                        content = translated_content
+                                except Exception as e:
+                                    logger.error(f"翻译过程中出�? {e}")
+                                    # 即使翻译失败也继续使用原�?
+                            
+                            # 转换为Word文档
+                            try:
+                                docx_path = pdf_path.replace('.pdf', '_result.docx')
+                                pypandoc.convert_text(content, 'docx', format='md', outputfile=docx_path)
+                                
+                                # 保存到session用于下载
+                                session['translated_docx'] = docx_path
+                                logger.info(f"文档转换完成: {docx_path}")
+                                
+                                return jsonify({
+                                    'success': True, 
+                                    'message': 'PDF处理完成',
+                                    'download_url': f'/download_docx/{os.path.basename(docx_path)}'
+                                })
+                            except Exception as e:
+                                logger.error(f"文档转换失败: {e}")
+                                return jsonify({'success': False, 'error': f'文档转换失败: {str(e)}'}), 500
+                        else:
+                            logger.error("未找到markdown文件")
+                            return jsonify({'success': False, 'error': '处理结果中未找到文本内容'}), 500
+                    else:
+                        logger.error("下载结果文件失败")
+                        return jsonify({'success': False, 'error': '下载处理结果失败'}), 500
+                else:
+                    logger.error(f"任务处理失败: {task_result}")
+                    return jsonify({'success': False, 'error': 'PDF处理任务失败'}), 500
+            else:
+                error_msg = result.get('msg', '未知错误')
+                logger.error(f"MinerU处理PDF失败: {error_msg}")
+                return jsonify({'success': False, 'error': f'PDF处理失败: {error_msg}'}), 500
+        else:
+            logger.error("MinerU返回结果格式不正�?)
             logger.error(f"完整结果: {result}")
             return jsonify({'success': False, 'error': 'PDF处理服务返回数据格式错误'}), 500
-            
-        task_id = result['data']['task_id']
-        logger.info(f"MinerU任务ID: {task_id}")
-        
-        if 'full_zip_url' not in result['data']:
-            logger.error("MinerU返回结果缺少full_zip_url")
-            logger.error(f"完整结果: {result}")
-            return jsonify({'success': False, 'error': 'PDF处理服务未返回下载地址'}), 500
-            
-        zip_url = result['data']['full_zip_url']
-        logger.info(f"ZIP文件下载地址: {zip_url}")
-        
-        # 下载结果
-        zip_filename = f"mineru_result_{task_id}.zip"
-        zip_path = os.path.join(pdf_output_dir, zip_filename)
-        
-        # 下载ZIP文件
-        try:
-            logger.info(f"开始下载ZIP文件: {zip_url}")
-            response = requests.get(zip_url, timeout=300)
-            logger.info(f"下载响应状态码: {response.status_code}")
-            if response.status_code != 200:
-                logger.error(f"下载ZIP文件失败，状态码: {response.status_code}")
-                logger.error(f"响应内容: {response.text}")
-                return jsonify({'success': False, 'error': f'下载结果文件失败，状态码: {response.status_code}'}), 500
-                
-            response.raise_for_status()
-            with open(zip_path, 'wb') as f:
-                f.write(response.content)
-            logger.info(f"ZIP文件已保存到: {zip_path}")
-        except Exception as e:
-            logger.error(f"下载结果文件失败: {e}")
-            import traceback
-            logger.error(f"错误详情: {traceback.format_exc()}")
-            return jsonify({'success': False, 'error': '下载结果文件失败'}), 500
-        
-        # 解压ZIP文件
-        try:
-            logger.info(f"开始解压ZIP文件: {zip_path}")
-            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                # 列出zip文件中的所有文件
-                file_list = zip_ref.namelist()
-                logger.info(f"ZIP文件包含以下文件: {file_list}")
-                
-                # 解压所有文件
-                zip_ref.extractall(pdf_output_dir)
-                logger.info(f"ZIP文件已解压到: {pdf_output_dir}")
-        except Exception as e:
-            logger.error(f"解压文件失败: {e}")
-            import traceback
-            logger.error(f"错误详情: {traceback.format_exc()}")
-            return jsonify({'success': False, 'error': '解压文件失败'}), 500
-        
-        # 查找markdown文件
-        md_file = None
-        logger.info(f"在目录 {pdf_output_dir} 中查找markdown文件")
-        
-        # 获取解压后的所有文件列表
-        extracted_files = []
-        for root, dirs, files in os.walk(pdf_output_dir):
-            for file in files:
-                full_path = os.path.join(root, file)
-                relative_path = os.path.relpath(full_path, pdf_output_dir)
-                extracted_files.append(relative_path)
-                logger.info(f"  解压文件: {relative_path}")
-                
-        logger.info(f"所有解压文件: {extracted_files}")
-        
-        # 按优先级查找合适的文件
-        # 1. 首先查找包含task_id的markdown文件
-        for file in extracted_files:
-            if file.endswith('.md') and task_id in file:
-                md_file = os.path.join(pdf_output_dir, file)
-                logger.info(f"找到匹配task_id的markdown文件: {md_file}")
-                break
-        
-        # 2. 如果没找到，查找任何markdown文件
-        if not md_file:
-            for file in extracted_files:
-                if file.endswith('.md'):
-                    md_file = os.path.join(pdf_output_dir, file)
-                    logger.info(f"找到markdown文件: {md_file}")
-                    break
-        
-        # 3. 如果仍然没找到，查找txt文件
-        if not md_file:
-            for file in extracted_files:
-                if file.endswith('.txt'):
-                    md_file = os.path.join(pdf_output_dir, file)
-                    logger.info(f"找到txt文件: {md_file}")
-                    break
-        
-        # 无论是否找到md文件，都创建docx文件
-        docx_filename = f"{os.path.splitext(unique_filename)[0]}.docx"
-        docx_path = os.path.join(pdf_output_dir, docx_filename)
-        
-        if not md_file:
-            logger.warning("未找到合适的文本文件，创建包含提示信息的Word文档")
-            try:
-                from docx import Document
-                doc = Document()
-                doc.add_heading('PDF处理结果', 1)
-                doc.add_paragraph('未能从PDF中提取到文本内容，请检查原始PDF文件是否包含可提取的文本。')
-                doc.add_paragraph(f'原始文件名: {filename}')
-                doc.add_paragraph(f'处理时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
-                doc.save(docx_path)
-                logger.info(f"创建了包含提示信息的文档: {docx_path}")
-            except Exception as e:
-                logger.error(f"创建提示信息文档失败: {e}")
-                import traceback
-                logger.error(f"错误详情: {traceback.format_exc()}")
-                return jsonify({'success': False, 'error': '处理PDF文件失败'}), 500
-        else:
-            # 读取提取的文本内容
-            try:
-                with open(md_file, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                logger.info(f"成功读取内容文件: {md_file}")
-                logger.info(f"读取的内容长度: {len(content)} 字符")
-                logger.info(f"读取的内容前200字符: {content[:200]}")
-            except Exception as e:
-                logger.error(f"读取内容文件失败: {e}")
-                return jsonify({'success': False, 'error': '读取提取内容失败'}), 500
-
-            # 如果配置了翻译API，则进行翻译
-            qwen_api_key = os.getenv('QWEN_API_KEY')
-            logger.info(f"检查Qwen API密钥: {'已配置' if qwen_api_key else '未配置'}")
-            if qwen_api_key:
-                try:
-                    # 获取目标语言参数
-                    target_language = request.form.get('target_language', 'EN')
-                    
-                    # 根据用户选择设置语言参数
-                    # 默认源语言为中文，目标语言根据选择确定
-                    lang_map = {
-                        'EN': ('Chinese', 'English'),   # 中文翻译为英文
-                        'ZH': ('English', 'Chinese'),   # 英文翻译为中文
-                        'JA': ('Chinese', 'Japanese')   # 中文翻译为日文
-                    }
-                    
-                    # 根据PDF内容的语言特征，调整源语言和目标语言
-                    # 这里假设大部分PDF是中文内容，需要翻译为其他语言
-                    if target_language in lang_map:
-                        source_lang, target_lang = lang_map[target_language]
-                    else:
-                        source_lang, target_lang = 'Chinese', 'English'
-                    
-                    logger.info(f"翻译语言设置 - 源语言: {source_lang}, 目标语言: {target_lang}")
-                    
-                    # 使用PPT模块中的Qwen异步翻译功能
-                    from app.function.local_qwen_async import translate_async
-                    import asyncio
-                    
-                    logger.info("开始翻译文本内容")
-                    logger.info(f"待翻译内容长度: {len(content)} 字符")
-                    # 执行异步翻译
-                    translated_dict = asyncio.run(
-                        translate_async(content, "通用", [], {}, source_lang, target_lang)
-                    )
-                    
-                    # 将原文和译文组合，译文紧跟在原文下方
-                    if translated_dict:
-                        logger.info(f"翻译完成，共获得 {len(translated_dict)} 条翻译结果")
-                        logger.info(f"部分翻译结果: {dict(list(translated_dict.items())[:3])}")
-                        
-                        # 检查是否整个文本作为一个整体被翻译
-                        content_stripped = content.strip()
-                        if content_stripped in translated_dict and translated_dict[content_stripped].strip():
-                            # 整个文本被翻译，直接组合，原文在上，译文在下
-                            combined_content = f"{content}\n\n【译文】{translated_dict[content_stripped]}\n"
-                            content = combined_content
-                            logger.info("整个文本作为整体被翻译并组合")
-                        else:
-                            # 按行处理内容，为每行原文添加对应译文
-                            content_lines = content.split('\n')
-                            combined_lines = []
-                            
-                            translation_added = 0
-                            for line in content_lines:
-                                # 添加原文
-                                combined_lines.append(line)
-                                # 如果该行有对应译文，则添加译文
-                                line_stripped = line.strip()
-                                if line_stripped and line_stripped in translated_dict and translated_dict[line_stripped].strip():
-                                    combined_lines.append("【译文】" + translated_dict[line_stripped])
-                                    translation_added += 1
-                                # 添加空行以保持格式
-                                combined_lines.append("")
-                            
-                            content = '\n'.join(combined_lines)
-                            logger.info(f"文本翻译和组合完成，组合后内容长度: {len(content)} 字符")
-                            logger.info(f"实际添加的翻译条数: {translation_added}")
-                            
-                            # 如果没有添加任何翻译，尝试将整个内容作为一个整体处理
-                            if translation_added == 0:
-                                logger.info("未按行匹配到翻译，尝试将整个内容作为整体处理")
-                                if content_stripped in translated_dict and translated_dict[content_stripped].strip():
-                                    combined_content = f"{content}\n\n【译文】{translated_dict[content_stripped]}\n"
-                                    content = combined_content
-                                    logger.info("整个文本作为整体被翻译并组合")
-                    else:
-                        logger.warning("翻译返回空结果，使用原文")
-                except Exception as e:
-                    logger.error(f"翻译过程中出错: {e}")
-                    import traceback
-                    logger.error(f"错误详情: {traceback.format_exc()}")
-                    # 即使翻译失败也继续使用原文
-            
-            # 转换markdown为Word文档
-            # 尝试使用pypandoc转换内容到docx
-            conversion_success = False  # 初始化变量
-            try:
-                import pypandoc
-                logger.info(f"使用pypandoc转换内容到 {docx_path}")
-                logger.info(f"转换前内容长度: {len(content)} 字符")
-                logger.info(f"转换前内容前200字符: {content[:200]}")
-                pypandoc.convert_text(content, 'docx', format='md', outputfile=docx_path)
-                conversion_success = True
-                logger.info("pypandoc转换成功")
-            except Exception as e:
-                logger.warning(f"使用pypandoc转换失败: {e}")
-                import traceback
-                logger.warning(f"错误详情: {traceback.format_exc()}")
-            
-            # 如果pypandoc不可用或转换失败，使用python-docx手动转换
-            if not conversion_success:
-                try:
-                    from docx import Document
-                    doc = Document()
-                    
-                    logger.info(f"使用python-docx手动转换内容")
-                    lines = content.split('\n')
-                    
-                    # 简单处理markdown内容，支持双语对照格式
-                    for line in lines:
-                        line = line.strip()
-                        if line.startswith('#'):
-                            # 处理标题 (最多支持6级标题)
-                            level = min(line.count('#'), 6)
-                            doc.add_heading(line.lstrip('# ').strip(), level=level)
-                        elif line.startswith('* ') or line.startswith('- '):
-                            # 处理无序列表
-                            doc.add_paragraph(line[2:].strip(), style='ListBullet')
-                        elif line.startswith('1. '):
-                            # 处理有序列表
-                            doc.add_paragraph(line[3:].strip(), style='ListNumber')
-                        elif line.startswith('【译文】'):
-                            # 处理译文段落，使用灰色字体以便区分
-                            from docx.shared import RGBColor
-                            paragraph = doc.add_paragraph()
-                            run = paragraph.add_run(line[5:].strip())  # 去掉"【译文】"前缀
-                            run.font.color.rgb = RGBColor(128, 128, 128)  # 灰色字体
-                        elif line.strip() == '':
-                            # 空行跳过，但确保段落分隔
-                            continue
-                        else:
-                            # 普通段落
-                            if line:
-                                doc.add_paragraph(line)
-                    
-                    doc.save(docx_path)
-                    conversion_success = True
-                    logger.info("python-docx转换成功")
-                except Exception as e2:
-                    logger.error(f"使用python-docx转换也失败了: {e2}")
-                    import traceback
-                    logger.error(f"错误详情: {traceback.format_exc()}")
-                    # 即使转换失败，也创建一个包含原始内容的docx文件
-                    try:
-                        from docx import Document
-                        doc = Document()
-                        doc.add_heading('PDF内容提取结果', 1)
-                        doc.add_paragraph('以下是直接从提取结果中获取的内容:')
-                        
-                        # 添加内容到文档中
-                        doc.add_paragraph(content)
-                        
-                        doc.save(docx_path)
-                        conversion_success = True
-                        logger.info("创建了包含内容的文档")
-                    except Exception as e3:
-                        logger.error(f"创建包含内容的文档也失败了: {e3}")
-                        import traceback
-                        logger.error(f"错误详情: {traceback.format_exc()}")
-                        return jsonify({'success': False, 'error': '转换Word文档失败'}), 500
-        
-        # 验证生成的docx文件是否存在
-        if not os.path.exists(docx_path):
-            logger.error(f"生成的Word文档不存在: {docx_path}")
-            logger.error(f"输出目录内容: {os.listdir(pdf_output_dir) if os.path.exists(pdf_output_dir) else '目录不存在'}")
-            # 尝试再次创建文件作为最后的保障
-            try:
-                from docx import Document
-                doc = Document()
-                doc.add_heading('PDF翻译结果', 1)
-                doc.add_paragraph('文件处理完成，但发生未知错误。')
-                doc.save(docx_path)
-                logger.info(f"作为最后保障创建了文档: {docx_path}")
-            except Exception as final_error:
-                logger.error(f"最终创建文档尝试也失败了: {final_error}")
-                return jsonify({'success': False, 'error': '生成Word文档失败'}), 500
-        else:
-            logger.info(f"确认生成的Word文档存在: {docx_path}")
-        
-        file_size = os.path.getsize(docx_path)
-        logger.info(f"生成的Word文档大小: {file_size} 字节")
-        
-        if file_size == 0:
-            logger.error("生成的Word文档为空")
-            return jsonify({'success': False, 'error': '生成的Word文档为空'}), 500
-        
-        # 记录到数据库
-        try:
-            from app.models.upload_record import UploadRecord
-            record = UploadRecord(
-                filename=docx_filename,
-                stored_filename=docx_filename,
-                file_path=docx_path,
-                user_id=current_user.id,
-                file_size=file_size,
-                status='completed'
-            )
-            db.session.add(record)
-            db.session.commit()
-            logger.info("上传记录已保存到数据库")
-            logger.info(f"记录ID: {record.id}")
-        except Exception as e:
-            logger.error(f"保存上传记录失败: {e}")
-            # 即使数据库记录失败，我们仍然返回成功，因为文件已生成
-            db.session.rollback()
-        
-        logger.info(f"PDF翻译完成，生成文件: {docx_path}")
-        # 确保返回的是JSON响应
-        response_data = {
-            'success': True, 
-            'message': 'PDF翻译完成',
-            'download_url': url_for('main.download_translated_pdf', filename=docx_filename, _external=False),
-            'filename': docx_filename
-        }
-        logger.info(f"返回响应数据: {response_data}")
-        response = jsonify(response_data)
-        response.headers['Content-Type'] = 'application/json'
-        return response
-        
-    except Exception as e:
-        logger.error(f"PDF翻译过程中出错: {e}")
-        import traceback
-        logger.error(f"错误详情: {traceback.format_exc()}")
-        db.session.rollback()
-        return jsonify({'success': False, 'error': f'处理过程中出错: {str(e)}'}), 500
-
-@main.route('/download_translated_pdf/<filename>')
-@login_required
-def download_translated_pdf(filename):
-    """下载翻译后的PDF文件（实际上是Word文档）"""
-    try:
-        logger.info(f"用户 {current_user.username} 请求下载文件: {filename}")
-        
-        # 确保文件名是安全的
-        from werkzeug.utils import secure_filename
-        filename = secure_filename(filename)
-        logger.info(f"安全文件名: {filename}")
-        
-        # 构建文件路径 - 使用项目根目录下的uploads文件夹
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        upload_folder = current_app.config['UPLOAD_FOLDER']
-        
-        # 确保使用正确的上传文件夹路径
-        # UPLOAD_FOLDER配置是相对于项目根目录的
-        if not os.path.isabs(upload_folder):
-            upload_folder = os.path.join(project_root, upload_folder)
-        
-        pdf_output_dir = os.path.join(upload_folder, 'pdf_outputs')
-        file_path = os.path.join(pdf_output_dir, filename)
-        
-        logger.info(f"项目根目录: {project_root}")
-        logger.info(f"上传文件夹配置: {current_app.config['UPLOAD_FOLDER']}")
-        logger.info(f"实际上传文件夹路径: {upload_folder}")
-        logger.info(f"PDF输出目录: {pdf_output_dir}")
-        logger.info(f"期望的文件路径: {file_path}")
-        logger.info(f"文件绝对路径: {os.path.abspath(file_path)}")
-        
-        # 检查目录是否存在
-        if not os.path.exists(pdf_output_dir):
-            logger.error(f"PDF输出目录不存在: {pdf_output_dir}")
-            os.makedirs(pdf_output_dir, exist_ok=True)
-            logger.info(f"已创建PDF输出目录: {pdf_output_dir}")
-        
-        # 检查文件是否存在
-        if not os.path.exists(file_path):
-            logger.error(f"下载文件不存在: {file_path}")
-            logger.error(f"文件绝对路径: {os.path.abspath(file_path)}")
-            
-            # 列出输出目录中的所有文件
-            if os.path.exists(pdf_output_dir):
-                files_in_dir = os.listdir(pdf_output_dir)
-                logger.info(f"目录中的文件列表: {files_in_dir}")
-                
-                # 尝试模糊匹配文件名
-                matched_files = [f for f in files_in_dir if filename in f or f.startswith(filename.split('.')[0])]
-                logger.info(f"匹配的文件: {matched_files}")
-                
-                if matched_files:
-                    # 使用第一个匹配的文件
-                    file_path = os.path.join(pdf_output_dir, matched_files[0])
-                    filename = matched_files[0]
-                    logger.info(f"使用匹配的文件: {file_path}")
-                    logger.info(f"匹配文件的绝对路径: {os.path.abspath(file_path)}")
-                else:
-                    # 如果没有匹配的文件，尝试查找任何docx文件
-                    docx_files = [f for f in files_in_dir if f.endswith('.docx')]
-                    if docx_files:
-                        file_path = os.path.join(pdf_output_dir, docx_files[0])
-                        filename = docx_files[0]
-                        logger.info(f"使用目录中的第一个docx文件: {file_path}")
-                        logger.info(f"第一个docx文件的绝对路径: {os.path.abspath(file_path)}")
-            else:
-                logger.error("PDF输出目录不存在")
-                flash('文件目录不存在', 'error')
-                return redirect(url_for('main.index'))
-        
-        # 再次检查文件是否存在
-        if not os.path.exists(file_path):
-            logger.error(f"文件仍然不存在: {file_path}")
-            logger.error(f"文件绝对路径: {os.path.abspath(file_path)}")
-            # 列出所有可能的文件
-            if os.path.exists(pdf_output_dir):
-                all_files = os.listdir(pdf_output_dir)
-                logger.info(f"输出目录中所有文件: {all_files}")
-            flash('文件不存在', 'error')
-            return redirect(url_for('main.index'))
-        
-        # 确保文件扩展名正确
-        if not filename.endswith('.docx'):
-            logger.warning(f"下载文件扩展名不正确: {filename}")
-        
-        logger.info(f"发送文件给用户: {file_path}")
-        logger.info(f"文件大小: {os.path.getsize(file_path)} 字节")
-        logger.info(f"文件绝对路径: {os.path.abspath(file_path)}")
-        
-        # 确保使用绝对路径发送文件
-        absolute_file_path = os.path.abspath(file_path)
-        if os.path.exists(absolute_file_path):
-            logger.info(f"使用绝对路径发送文件: {absolute_file_path}")
-            return send_file(absolute_file_path, as_attachment=True, download_name=filename)
-        else:
-            logger.error(f"绝对路径文件也不存在: {absolute_file_path}")
-            flash('文件不存在', 'error')
-            return redirect(url_for('main.index'))
-            
-    except Exception as e:
-        logger.error(f"下载文件时出错: {e}")
-        import traceback
-        logger.error(f"错误详情: {traceback.format_exc()}")
-        flash('下载文件时出错: ' + str(e), 'error')
-        return redirect(url_for('main.index'))
-
-
-@main.route('/download/<int:record_id>')
-@login_required
-def download_translated_file(record_id):
-    """下载翻译后的文件"""
-    try:
-        from app.models.upload_record import UploadRecord
-        record = UploadRecord.query.get(record_id)
-        
-        if not record:
-            flash('文件记录不存在', 'error')
-            return redirect(url_for('main.index'))
-        
-        if not os.path.exists(record.file_path):
-            flash('文件不存在', 'error')
-            return redirect(url_for('main.index'))
-        
-        return send_file(record.file_path, as_attachment=True, download_name=record.filename)
-    except Exception as e:
-        logger.error(f"下载文件时出错: {e}")
-        flash('下载文件时出错', 'error')
-        return redirect(url_for('main.index'))
-
-
-@main.route('/file_management')
-@login_required
-def file_management():
-    """文件管理页面 - 管理员可查看所有用户上传的文件"""
-    if not current_user.is_administrator():
-        flash('没有权限访问此页面')
-        return redirect(url_for('main.index'))
-        
-    return render_template('main/file_management.html', user=current_user)
-
-
-@main.route('/user_management')
-@login_required
-def user_management():
-    """用户管理页面 - 仅管理员可见"""
-    if not current_user.is_administrator():
-        flash('没有权限访问此页面')
-        return redirect(url_for('main.index'))
-    return render_template('main/user_management.html', user=current_user)
-
-
-@main.route('/api/admin/files')
-@login_required
-def get_admin_files():
-    """获取所有用户上传的文件 (仅管理员)"""
-    if not current_user.is_administrator():
-        return jsonify({'error': '没有权限访问此API'}), 403
-        
-    try:
-        # 查询所有文件记录
-        records = UploadRecord.query.order_by(UploadRecord.upload_time.desc()).all()
-        
-        # 构建文件列表，包含用户信息
-        files = []
-        for record in records:
-            # 查询用户信息
-            user = User.query.get(record.user_id)
-            username = user.username if user else "未知用户"
-            
-            # 检查文件是否存在
-            file_exists = os.path.exists(os.path.join(record.file_path, record.stored_filename))
-            
-            # 使用ISO格式返回时间，让前端正确处理时区
-            upload_time = datetime_to_isoformat(record.upload_time)
-            
-            files.append({
-                'id': record.id,
-                'filename': record.filename,
-                'stored_filename': record.stored_filename,
-                'file_path': record.file_path,
-                'file_size': record.file_size,
-                'upload_time': upload_time,
-                'status': record.status,
-                'error_message': record.error_message,
-                'user_id': record.user_id,
-                'username': username,
-                'file_exists': file_exists
-            })
-            
-        return jsonify({
-            'files': files,
-            'total': len(files)
-        })
-        
-    except Exception as e:
-        logger.error(f"获取管理员文件列表失败: {str(e)}")
-        return jsonify({
-            'error': f'获取文件列表失败: {str(e)}',
-            'files': [],
-            'total': 0
-        }), 500
-
-
-@main.route('/api/admin/files/<int:record_id>', methods=['DELETE'])
-@login_required
-def admin_delete_file(record_id):
-    """管理员删除文件"""
-    if not current_user.is_administrator():
-        return jsonify({'error': '没有权限执行此操作'}), 403
-        
-    try:
-        # 获取上传记录
-        record = UploadRecord.query.get_or_404(record_id)
-        
-        # 删除物理文件
-        file_path = os.path.join(record.file_path, record.stored_filename)
-        if os.path.exists(file_path):
-            os.remove(file_path)
-            logger.info(f"管理员删除文件: {file_path}")
-        
-        # 删除数据库记录
-        db.session.delete(record)
-    except Exception as e:
-        db.session.rollback()
-        logger.error(f"管理员删除文件失败: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': f'删除文件失败: {str(e)}'
-        }), 500
-        db.session.commit()
-    return jsonify({
-            'success': True,
-            'message': '文件删除成功'
-        })
-
-
-@main.route('/api/translation_history')
-@login_required
-def translation_history():
-    """获取翻译历史记录"""
-    try:
-        # 获取查询参数
-        file_type = request.args.get('type', '')
-        
-        # 构建查询 - 只返回状态为 completed 的记录
-        query = UploadRecord.query.filter_by(user_id=current_user.id, status='completed')
-        
-        # 按上传时间倒序排列
-        records = query.order_by(UploadRecord.upload_time.desc()).all()
-
-        # 格式化记录
-        history_records = []
-        for record in records:
-            # 检查文件是否仍然存在
-            file_path = os.path.join(record.file_path, record.stored_filename)
-            file_exists = os.path.exists(file_path)
-
-            # 使用ISO格式返回时间，让前端正确处理时区
-            upload_time = datetime_to_isoformat(record.upload_time)
-            
-            # 直接使用数据库中存储的文件名
-            history_records.append({
-                'id': record.id,
-                'filename': record.filename,  # 使用数据库中存储的文件名
-                'file_size': record.file_size,
-                'upload_time': upload_time,
-                'status': record.status,
-                'file_exists': file_exists
-            })
-
-        # 如果指定了文件类型，则在Python层面进行过滤（避免SQL层面的字段不存在错误）
-        if file_type:
-            filtered_records = []
-            for record in history_records:
-                # 由于数据库中可能没有file_type字段，我们只能通过文件名后缀等方式大致判断
-                # 这里简化处理，如果需要精确过滤，需要在数据库中添加file_type字段
-                if file_type == 'pdf_translation':
-                    # 简单地通过文件名判断是否为PDF翻译记录
-                    if record['filename'].endswith('.docx') or 'translated' in record['filename']:
-                        filtered_records.append(record)
-                else:
-                    # 对于其他类型，暂时不过滤
-                    filtered_records.append(record)
-            history_records = filtered_records
-
-        return jsonify(history_records)
-        
-    except Exception as e:
-        logger.error(f"获取翻译历史记录失败: {e}")
-        import traceback
-        logger.error(f"错误详情: {traceback.format_exc()}")
-        return jsonify({
-            'status': 'error',
-            'message': '获取历史记录失败'
-        }), 500
-
-        import traceback
-        logger.error(f"错误详情: {traceback.format_exc()}")
-        return jsonify({
-            'status': 'error',
-            'message': '获取历史记录失败'
-        }), 500
-        template_path = './批量上传词汇(模板).xlsx'
-
-        if not os.path.exists(template_path):
-            # 如果模板文件不存在，创建它
-            create_template_file(template_path)
-
-        return send_file(
-            template_path,
-            as_attachment=True,
-            download_name='批量上传词汇模板.xlsx',
-            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
-    except Exception as e:
-        logger.error(f"下载模板文件失败: {str(e)}")
-        return jsonify({'error': f'下载模板文件失败: {str(e)}'}), 500
-
-def create_template_file(file_path):
-    """创建模板 Excel 文件"""
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Sheet1"
-
-    # 设置表头
-    headers = ['english', 'chinese', 'dutch', 'category', 'is_public']
-    for col_num, header in enumerate(headers, 1):
-        cell = ws.cell(row=1, column=col_num)
-        cell.value = header
-        cell.font = openpyxl.styles.Font(bold=True)
-        cell.fill = openpyxl.styles.PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
-
-    # 添加示例数据
-    sample_data = [
-        ['hello', '你好', 'Hallo', '日常；问候', 1],
-        ['sorry', '抱歉', 'Pardon', '日常；问候', 0]
-    ]
-
-    for row_num, row_data in enumerate(sample_data, 2):
-        for col_num, value in enumerate(row_data, 1):
-            ws.cell(row=row_num, column=col_num, value=value)
-
-    # 设置列宽度
-    column_widths = [20, 20, 20, 30, 10]
-    for i, width in enumerate(column_widths, 1):
-        ws.column_dimensions[openpyxl.utils.get_column_letter(i)].width = width
-
-    # 保存文件
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    wb.save(file_path)
-
-@main.route('/api/translations/batch_upload', methods=['POST'])
-@login_required
-def batch_upload_translations():
-    """批量上传翻译文件并处理"""
-    try:
-        if 'file' not in request.files:
-            return jsonify({'error': '没有文件'}), 400
-
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({'error': '没有选择文件'}), 400
-
-        if not allowed_excel_file(file.filename):
-            return jsonify({'error': '只支持 Excel 文件 (.xlsx, .xls)'}), 400
-
-        # 获取文件扩展名并验证
-        if '.' not in file.filename:
-            return jsonify({'error': '文件名必须包含扩展名'}), 400
-
-        file_ext = file.filename.rsplit('.', 1)[1].lower()
-        if file_ext not in EXCEL_ALLOWED_EXTENSIONS:
-            return jsonify({'error': f'不支持的文件格式: .{file_ext}。只支持: {", ".join(EXCEL_ALLOWED_EXTENSIONS)}'}), 400
-
-        # 保存上传的文件
-        upload_folder = current_app.config['UPLOAD_FOLDER']
-        user_upload_dir = os.path.join(upload_folder, f"user_{current_user.id}")
-        os.makedirs(user_upload_dir, exist_ok=True)
-
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = secure_filename(file.filename)
-        # 确保文件名包含正确的扩展名
-        if not filename.lower().endswith(f'.{file_ext}'):
-            filename = f"{filename}.{file_ext}"
-
-        file_path = os.path.join(user_upload_dir, f"batch_upload_{timestamp}_{filename}")
-        file_path = os.path.abspath(file_path)  # 转换为绝对路径
-        logger.info(f"文件将保存到: {file_path}")
-        logger.info(f"文件扩展名: {file_ext}")
-
-        file.save(file_path)
-        logger.info("文件保存成功")
-
-        # 验证文件是否为有效的 Excel 文件
-        try:
-            import zipfile
-            if file_ext == 'xlsx':
-                # 检查是否为有效的 ZIP 文件（xlsx 实际上是 ZIP 格式）
-                with zipfile.ZipFile(file_path, 'r') as zip_ref:
-                    zip_ref.testzip()
-                logger.info("文件是有效的 xlsx 格式")
-            elif file_ext == 'xls':
-                # 对于 xls 文件，检查文件头
-                with open(file_path, 'rb') as f:
-                    header = f.read(8)
-                    # Excel 97-2003 的文件头
-                    if not header.startswith(b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1'):
-                        raise ValueError("不是有效的 xls 文件")
-                logger.info("文件是有效的 xls 格式")
-        except Exception as e:
-            logger.error(f"文件格式验证失败: {str(e)}")
-            os.remove(file_path)  # 删除无效文件
-            return jsonify({'error': f'文件格式无效: {str(e)}'}), 400
-
-        # 解析 Excel 文件
-        translations_data, errors = parse_excel_file(file_path)
-
-        if errors:
-            # 删除临时文件
-            os.remove(file_path)
-            return jsonify({
-                'error': '文件解析失败',
-                'details': errors[:10]  # 只返回前10个错误
-            }), 400
-
-        if not translations_data:
-            # 删除临时文件
-            os.remove(file_path)
-            return jsonify({'error': '文件中没有有效的翻译数据'}), 400
-
-        # 批量插入数据库
-        success_count, error_count, error_details = batch_insert_translations(translations_data, current_user.id)
-
-        # 删除临时文件
-        os.remove(file_path)
-
-        result = {
-            'message': f'批量上传完成。成功: {success_count}, 失败: {error_count}',
-            'success_count': success_count,
-            'error_count': error_count
-        }
-
-        if error_details:
-            result['errors'] = error_details[:10]  # 只返回前10个错误详情
-
-        return jsonify(result)
 
     except Exception as e:
-        logger.error(f"批量上传翻译失败: {str(e)}")
-        logger.error(f"错误类型: {type(e).__name__}")
-        import traceback
-        logger.error(f"完整错误信息:\n{traceback.format_exc()}")
-        return jsonify({
-            'error': f'批量上传失败: {str(e)}',
-            'error_type': type(e).__name__,
-            'file_path': file_path if 'file_path' in locals() else None
-        }), 500
-
-def parse_excel_file(file_path):
-    """解析 Excel 文件，返回翻译数据和错误信息"""
-    translations = []
-    errors = []
-
-    try:
-        logger.info(f"开始解析 Excel 文件: {file_path}")
-
-        # 检查文件是否存在
-        if not os.path.exists(file_path):
-            errors.append(f"文件不存在: {file_path}")
-            return [], errors
-
-        # 检查文件大小
-        file_size = os.path.getsize(file_path)
-        logger.info(f"文件大小: {file_size} bytes")
-
-        if file_size == 0:
-            errors.append("文件为空")
-            return [], errors
-
-        logger.info("尝试加载 Excel 文件...")
-        wb = openpyxl.load_workbook(file_path, data_only=True)
-        logger.info("Excel 文件加载成功")
-
-        ws = wb.active
-        logger.info("获取活动工作表成功")
-
-        logger.info(f"工作表名称: {ws.title}")
-        logger.info(f"最大行数: {ws.max_row}, 最大列数: {ws.max_column}")
-
-        # 检查表头
-        expected_headers = ['english', 'chinese', 'dutch', 'category', 'is_public']
-        actual_headers = []
-
-        for col in range(1, len(expected_headers) + 1):
-            cell_value = ws.cell(row=1, column=col).value
-            if cell_value:
-                actual_headers.append(str(cell_value).strip().lower())
-            else:
-                actual_headers.append('')
-
-        logger.info(f"期望表头: {expected_headers}")
-        logger.info(f"实际表头: {actual_headers}")
-
-        if actual_headers != expected_headers:
-            errors.append(f"表头不匹配。期望: {expected_headers}, 实际: {actual_headers}")
-            return [], errors
-
-        # 解析数据行
-        for row_num in range(2, ws.max_row + 1):
-            try:
-                row_data = {}
-                has_data = False
-
-                for col_num, header in enumerate(expected_headers, 1):
-                    cell_value = ws.cell(row=row_num, column=col_num).value
-                    if cell_value is not None:
-                        if isinstance(cell_value, str):
-                            cell_value = cell_value.strip()
-                        row_data[header] = cell_value
-                        if header in ['english', 'chinese'] and cell_value:
-                            has_data = True
-                    else:
-                        row_data[header] = None
-
-                # 检查必填字段
-                if not row_data.get('english') or not row_data.get('chinese'):
-                    if has_data:  # 如果有其他数据但必填字段为空
-                        errors.append(f"第{row_num}行: 英文和中文为必填字段")
-                    continue
-
-                # 处理 is_public 字段
-                if row_data.get('is_public') is not None:
-                    if isinstance(row_data['is_public'], str):
-                        row_data['is_public'] = row_data['is_public'].lower() in ('1', 'true', 'yes', '是')
-                    elif isinstance(row_data['is_public'], (int, float)):
-                        row_data['is_public'] = bool(row_data['is_public'])
-                    else:
-                        row_data['is_public'] = False
-                else:
-                    row_data['is_public'] = False
-
-                # 普通用户不能添加公共翻译
-                if row_data['is_public'] and not current_user.is_administrator():
-                    row_data['is_public'] = False
-
-                translations.append(row_data)
-
-            except Exception as e:
-                errors.append(f"第{row_num}行解析失败: {str(e)}")
-                continue
-
-    except Exception as e:
-        logger.error(f"Excel 文件解析异常: {str(e)}")
-        logger.error(f"异常类型: {type(e).__name__}")
-        import traceback
-        logger.error(f"完整堆栈跟踪:\n{traceback.format_exc()}")
-        errors.append(f"文件解析失败: {str(e)}")
-
-    return translations, errors
-
-def batch_insert_translations(translations_data, user_id):
-    """批量插入翻译数据到数据库"""
-    success_count = 0
-    error_count = 0
-    error_details = []
-
-    for item in translations_data:
-        try:
-            # 检查是否已存在相同的翻译
-            existing = None
-            if item.get('is_public') and current_user.is_administrator():
-                # 管理员检查公共翻译
-                existing = Translation.query.filter_by(
-                    english=item['english'],
-                    is_public=True
-                ).first()
-            else:
-                # 普通用户检查自己的私有翻译
-                existing = Translation.query.filter_by(
-                    user_id=user_id,
-                    english=item['english']
-                ).first()
-
-            if existing:
-                error_count += 1
-                error_details.append(f"英文 '{item['english']}' 已存在")
-                continue
-
-            # 创建新的翻译记录
-            translation = Translation(
-                english=item['english'],
-                chinese=item['chinese'],
-                dutch=item.get('dutch'),
-                category=item.get('category'),
-                is_public=item['is_public'],
-                user_id=user_id
-            )
-
-            db.session.add(translation)
-            success_count += 1
-
-        except Exception as e:
-            error_count += 1
-            error_details.append(f"插入 '{item.get('english', 'N/A')}' 失败: {str(e)}")
-            continue
-
-    try:
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        error_details.append(f"数据库提交失败: {str(e)}")
-        success_count = 0
-        error_count = len(translations_data)
-
-    return success_count, error_count, error_details
+        logger.error(f"处理PDF时出�? {e}")
+        logger.error(traceback.format_exc())
+        return jsonify({'success': False, 'error': f'处理PDF时出�? {str(e)}'}), 500
