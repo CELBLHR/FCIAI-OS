@@ -112,10 +112,10 @@
                 <i class="bi bi-search"></i>
                 <span>{% if session.get('language') == 'en' %}Ingredient Search{% else %}成分搜索{% endif %}</span>
             </a> -->
-            <a href="{{ url_for('main.pdf_translate') }}" class="nav-item {% if request.endpoint == 'main.pdf_translate' %}active{% endif %}">
+            <!-- <a href="{{ url_for('main.pdf_translate') }}" class="nav-item {% if request.endpoint == 'main.pdf_translate' %}active{% endif %}">
                 <i class="bi bi-file-pdf"></i>
                 <span>{% if session.get('language') == 'en' %}PDF Translation{% else %}PDF翻译{% endif %}</span>
-            </a>
+            </a> -->
             {% if current_user.is_authenticated and current_user.is_administrator() %}
                 <a href="{{ url_for('main.registration_approval') }}" class="nav-item">
                     <i class="bi bi-person-check"></i>
